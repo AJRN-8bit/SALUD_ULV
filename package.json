@@ -1,0 +1,38 @@
+{
+  "name": "salud_ulv_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "SaludULV.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/SaludULV.ts",
+    "start": "node src/SaludULV.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "fastify": "^5.7.4",
+    "jsonwebtoken": "^9.0.3",
+    "luxon": "^3.7.2",
+    "mssql": "^12.2.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/luxon": "^3.7.1",
+    "@types/mssql": "^9.1.9",
+    "@types/node": "^25.4.0",
+    "dotenv": "^17.3.1",
+    "eslint": "^10.0.3",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  }
+}
