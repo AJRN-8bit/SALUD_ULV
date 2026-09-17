@@ -1,3 +1,8 @@
-node_modules
+node_modules/
+docs/
 .env
 .vscode
+
+db_dataCreation.sql
+db_dataInsertion.sql
+db_dataQueries.sql

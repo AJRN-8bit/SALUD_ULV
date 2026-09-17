@@ -1,5 +1,5 @@
-import type IAdminRepository from "../../../application/ports/adminRepository.ts";
-import { GroupActivities } from "../../../domain/group/groupActivities.ts";
+import type IAdminRepository from "../../repositories/adminRepository.ts";
+import { type IGroupActivities } from "../../../domain/group/groupActivities.ts";
 
 export default class GetAllGroupsActivities{ 
     private repository: IAdminRepository;
@@ -8,7 +8,7 @@ export default class GetAllGroupsActivities{
         this.repository = repository;
     }
 
-    async execute(): Promise<GroupActivities[] | null>{
+    async execute(): Promise<IGroupActivities[] | null>{
         return await this.repository.getAllGroupsActivities();
             
     }

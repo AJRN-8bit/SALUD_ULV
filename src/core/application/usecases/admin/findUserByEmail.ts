@@ -1,5 +1,5 @@
-import type IAdminRepository from "../../../application/ports/adminRepository.ts";
-import { User } from "../../../domain/user/user.ts";
+import type IAdminRepository from "../../repositories/adminRepository.ts";
+import { User } from "../../../user/models/user.ts";
 
 export default class FindUserByEmail{ 
     private repository: IAdminRepository;
@@ -11,7 +11,8 @@ export default class FindUserByEmail{
     }
 
     async execute(): Promise<User | null>{
-        return await this.repository.findUserByEmail(this.userEmail);
+        // return await this.repository.findUserByEmail(this.userEmail);
+        return null;
             
     }
 }

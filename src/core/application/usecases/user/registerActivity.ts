@@ -1,18 +1,19 @@
-import { UserActivity } from "../../../domain/user/userActivity.ts";
-import type { IUserActivityRegistry } from "../../../domain/user/userActivity.ts";
-import type IUserRepository from "../../../application/ports/userRepository.ts";
+// import type { IUserActivity } from "../../../domain/user/userActivity.ts";
+// import type IUserRepository from "../../../application/ports/userRepository.ts";
 
-export default class RegisterUserActivity{ 
-    private repository: IUserRepository;
-    private userActivity: IUserActivityRegistry;
+// export default class RegisterUserActivity{ 
+//     private repository: IUserRepository;
+//     private userActivity: IUserActivity;
 
-    constructor(repository: IUserRepository, userActivity: IUserActivityRegistry){
-        this.repository = repository;
-        this.userActivity = userActivity;
-    }
+//     constructor(repository: IUserRepository, userActivity: IUserActivity){
+//         this.repository = repository;
+//         this.userActivity = userActivity;
+//     }
 
-    async execute(): Promise<void>{
-        return await this.repository.registerUserActivity(this.userActivity);
-            
-    }
-}
+//     async execute(): Promise<void>{
+//         const userExists = await this.repository.findUserByID(this.userActivity.userID);
+//         if(!userExists){throw new Error('User not found');}
+
+//         await this.repository.registerUserActivity(this.userActivity);
+//     }
+// }

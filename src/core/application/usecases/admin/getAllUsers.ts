@@ -1,5 +1,5 @@
-import type IAdminRepository from "../../../application/ports/adminRepository.ts";
-import { User } from "../../../domain/user/user.ts";
+import type IAdminRepository from "../../repositories/adminRepository.ts";
+import { type IUser } from "../../../user/models/user.ts";
 
 export default class GetAllUsers{ 
     private repository: IAdminRepository;
@@ -8,8 +8,7 @@ export default class GetAllUsers{
         this.repository = repository;
     }
 
-    async execute(): Promise<User[] | null>{
+    async execute(): Promise<IUser[] | null>{
         return await this.repository.getAllUsers();
-            
     }
 }

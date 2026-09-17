@@ -1,11 +1,11 @@
 {
   "name": "salud_ulv_backend",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "",
   "main": "SaludULV.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/SaludULV.ts",
+    "dev": "nodemon --delay 1s --exec ts-node src/SaludULV.ts",
     "start": "node src/SaludULV.js"
   },
   "keywords": [],

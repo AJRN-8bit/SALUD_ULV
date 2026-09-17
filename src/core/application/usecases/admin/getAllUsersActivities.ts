@@ -1,5 +1,5 @@
-import type IAdminRepository from "../../../application/ports/adminRepository.ts";
-import { UserActivity } from "../../../domain/user/userActivity.ts";
+import type IAdminRepository from "../../repositories/adminRepository.ts";
+import { type IUserActivity } from "../../../user/userActivity.ts";
 
 export default class GetAllUsersActivities{ 
     private repository: IAdminRepository;
@@ -8,7 +8,7 @@ export default class GetAllUsersActivities{
         this.repository = repository;
     }
 
-    async execute(): Promise<UserActivity[] | null>{
+    async execute(): Promise<IUserActivity[] | null>{
         return await this.repository.getAllUsersActivities();
             
     }
