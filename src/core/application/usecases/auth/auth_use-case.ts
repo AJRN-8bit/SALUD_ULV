@@ -140,8 +140,8 @@ export default class AuthUseCase implements IAuthUseCase{
         const foundUser = await this.repository.findByEmail(email);
         if(!foundUser){throw new Error("Email doesn't exist")}
 
-        const deletedAccount = await this.repository.deleteAccount(email);
-        if(!deletedAccount){throw new Error("Account could not be deleted")}
+        await this.repository.deleteAccount(email);
+        // if(!deletedAccount){throw new Error("Account could not be deleted")}
     }
 
     

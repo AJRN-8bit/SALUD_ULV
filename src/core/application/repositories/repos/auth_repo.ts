@@ -21,5 +21,5 @@ export interface IAuthRepo {
     findByCode(code: string): Promise<boolean | null>;
 
     changePassword(email: string, newPw: string): Promise<boolean | null>;
-    deleteAccount(email: string): Promise<boolean | null>;
+    deleteAccount(email: string): Promise<void>;
 }

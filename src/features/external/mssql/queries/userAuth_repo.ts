@@ -297,7 +297,7 @@ export default class AuthRepository implements IAuthRepo {
 
 
     // -----------------------------------------------------------------------------------------------------------------------------------------
-    async deleteAccount(email: string): Promise<boolean | null> {
+    async deleteAccount(email: string): Promise<void> {
         try {
             await database.connect();
 
@@ -305,7 +305,7 @@ export default class AuthRepository implements IAuthRepo {
                 .input('email', sql.NVarChar, email)
                 .query('DELETE FROM SaludULV.Users WHERE Email = @email');
 
-            return true;
+            return;
 
         } catch (error) {
             throw new Error(`${error}`);
