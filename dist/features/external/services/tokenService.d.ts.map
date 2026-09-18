@@ -1,0 +1,1 @@
+{"version":3,"file":"tokenService.d.ts","sourceRoot":"","sources":["../../../../src/features/external/services/tokenService.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,sEAAsE,CAAC;AAE1G,OAAO,GAAG,MAAM,cAAc,CAAC;AAE/B,qBAAa,UAAW,YAAW,aAAa;IACtC,QAAQ,CAAC,OAAO,EAAE,MAAM;IACxB,MAAM,CAAC,KAAK,EAAE,MAAM;CAC7B"}

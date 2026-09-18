@@ -3,7 +3,7 @@
 import fastify from 'fastify';
 // import env from 'dotenv';
 import { authRoutes } from './routes/authRoutes.ts';
-import { groupRoutes } from './routes/groupRoutes.ts';
+// import { groupRoutes } from './routes/groupRoutes.ts';
 import { anthroRoutes } from './routes/anthroRoutes.ts';
 import { database } from '../external/mssql/config.ts'; 
 // import { anthroRoutes } from './routes/anthroRoutes.ts';
@@ -16,7 +16,7 @@ const server = fastify();
 
 server.register(authRoutes, { prefix: '/auth' });
 server.register(anthroRoutes, { prefix: '/anthropometric' });
-server.register(groupRoutes, { prefix: '/groups' });
+// server.register(groupRoutes, { prefix: '/groups' });
 
 const port = Number(process.env.PORT) || 3080 || 3100;
 const host = process.env.HOST || '127.0.0.1';

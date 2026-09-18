@@ -124,6 +124,8 @@ export const deleteAccountController = (useCase: IAuthUseCase) => {
     try {
       const { email } = request.body as any;
 
+      console.log(email);
+
       await useCase.deleteAccount(email);
 
       return reply.status(200).send({

@@ -4,6 +4,8 @@
   "description": "",
   "main": "SaludULV.ts",
   "scripts": {
+    "build": "tsc",
+    "build:production": "node scripts/build-production.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --delay 1s --exec ts-node src/SaludULV.ts",
     "start": "node src/SaludULV.js"
