@@ -9,6 +9,8 @@ export class ListByUserCodeUseCase implements IListAnthroByUserCode {
     constructor(repo: IAnthroRepo) { this.repo = repo }
 
     async execute(userCode: string): Promise<Anthropometric[] | null> {
+        if(userCode == null) return null;
+
         const data = await this.repo.getAllByUserCode(userCode);
         if(data == null) return null;
 

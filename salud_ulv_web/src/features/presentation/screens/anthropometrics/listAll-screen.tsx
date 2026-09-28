@@ -10,6 +10,7 @@ const listAnthroByCodeUseCase = new ListByUserCodeUseCase(new AnthroRepo());
 export function ListAnthropometricPage() {
     const { anthroList, userList, loading, error, loadAll, loadByUserCode} = anthroHook();
     const [userCode, setUserCode] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         loadAll(listAnthroUseCase);
@@ -17,41 +18,37 @@ export function ListAnthropometricPage() {
 
     const searchByUserCode = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (userCode.trim() === "") return;
-        loadByUserCode(listAnthroByCodeUseCase ,userCode);
+
+        console.log(`${userCode.trim()}`)
+
+        if (userCode.trim() === "") {
+            setIsSearching(false);
+            loadAll(listAnthroUseCase);
+            return;
+        }
+        setIsSearching(true);
+        loadByUserCode(listAnthroByCodeUseCase, userCode);
     }
 
-    // return (
-    //     <div>
-    //         <p>Anthropometrics</p>
-
-    //         <form onSubmit={handleSubmit}>
-    //             <button type="submit" disabled={loading}> Get </button>
-    //         </form>
-
-    //         {loading && <p>Getting data...</p>}
-    //         {error && <p>Error:{error}</p>}
-
-    //         {anthroList?.map((item, i) => (<p key={i}>{JSON.stringify(item)}</p>))}
-
-    //     </div>
-    // );
-    // console.log("anthroList:", anthroList, typeof anthroList, Array.isArray(anthroList));
-    const displayList = userList && userList.length > 0 ? userList : anthroList;
+    // list condition
+    const displayList = isSearching && userList && userList.length > 0 
+        ? userList 
+        : anthroList;
 
     return (
         <div>
-            <h2>Datos antropométricos</h2>
+            <h2>Datos Antropométricos</h2>
 
 
             <form onSubmit={searchByUserCode}>
                 <input
+                    className="input-component"
                     type="text"
                     placeholder="Buscar por matrícula"
                     value={userCode}
                     onChange={(e) => setUserCode(e.target.value)}
                 />
-                <button type="submit" disabled={loading}>Buscar</button>
+                <button className="simple-button" type="submit" disabled={loading}>Buscar</button>
             </form>
 
             {loading && <p>Getting data...</p>}
@@ -59,7 +56,7 @@ export function ListAnthropometricPage() {
             {(!displayList || displayList.length === 0) && !loading && <p>No data available</p>}
 
             {
-                <table style={{ margin: "0 auto"}}>
+                <table className="anthro-table" style={{ margin: "0 auto"}}>
                     <thead>
                         <tr>
                             <th>Matrícula</th>
@@ -90,8 +87,6 @@ export function ListAnthropometricPage() {
                     </tbody>
                 </table>
             }
-
-
         </div>
     );
 }

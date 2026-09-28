@@ -4,11 +4,11 @@
 // import viteLogo from './assets/vite.svg'
 
 import './App.css'
+import MainWrapper from './features/presentation/screens/mainWrapper';
 // import { ListAnthropometricPage } from './features/presentation/screens/anthropometrics/listAll-screen'
-import Layout from './features/presentation/screens/mainWrapper'
 
 function App() {
-  return <Layout />;
+  return <MainWrapper />;
 }
 
 export default App;

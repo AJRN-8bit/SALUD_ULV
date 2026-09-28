@@ -11,6 +11,7 @@ export const anthroHook = () => {
 
     const loadAll = useCallback(async (usecase: IListAllAnthropometrics) => {
         setLoading(true);
+        setAnthroList([]);
         setError(null);
         try {
             const data = await usecase.execute();
@@ -26,10 +27,11 @@ export const anthroHook = () => {
 
     const loadByUserCode = useCallback(async (usecase: IListAnthroByUserCode, userCode: string) => {
         setLoading(true);
+        setUserList([]);
         setError(null);
         try {
             const data = await usecase.execute(userCode);
-            if (data == null) throw new Error('Error al consultar');
+            if (data == null) throw new Error('Datos de usuario no encontrados');
             setUserList(data);
         } catch (error) {
             setUserList(null);
