@@ -152,16 +152,23 @@ class WalkActivityUsecase
     await geolocatorSensor.start(2, 4, 1); // geolocator initial
     await accelerometerSensor.start();
 
-    final accelStream = streamSpeedReductor(accelerometerSensor.magnitude, 100);
+    // final accelStream = streamSpeedReductor(accelerometerSensor.magnitude, 100);
+    final accelStream = accelerometerSensor.magnitude;
+
 
     _accelSub = accelStream.listen((raw) {
       final step = countStep(accelerometerData: raw!);
 
-      if (step &&
-          geolocatorSensor.hasMovement &&
-          geolocatorSensor.speed < 2.5) {
-        _steps++;
-      }
+      // if (step &&
+      //     geolocatorSensor.hasMovement &&
+      //     geolocatorSensor.speed < 2.5) {
+      //   _steps++;
+      // }
+
+      if (step && geolocatorSensor.speed < 2.5) {
+  _steps++;
+}
+
     });
 
     _timer.start();
