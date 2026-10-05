@@ -17,9 +17,16 @@ abstract class IGetByFieldAnthroUseCase {
   Future<List<Map<String, dynamic>>?> execute(String field);
 }
 
+abstract class ICheckRecentAnthroUseCase {
+  Future<(Map<String,({num min, num max})>?, Map<String, num>?)> execute();
+
+}
+
 abstract class ISendAnthroUseCase {
   Future<bool> execute();
 }
+
+
 
 
 

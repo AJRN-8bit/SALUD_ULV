@@ -11,6 +11,8 @@ class SaveAnthroEvent extends AnthroEvent{
 class AnthroGetRecentEvent extends AnthroEvent{}
 class AnthroGetAllEvent extends AnthroEvent{}
 
+class AnthroEvaluationEvent extends AnthroEvent{}
+
 class AnthroGetByFieldEvent extends AnthroEvent{
   final String field;
   AnthroGetByFieldEvent(this.field);

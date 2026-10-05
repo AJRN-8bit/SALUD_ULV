@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:salud_ulv_app/src/core/repositories/use-cases/excercise_usecases.dart';
 import 'package:salud_ulv_app/src/core/services/error_handlers.dart';
@@ -106,17 +107,23 @@ class ExerciseTrackingBloc
           : null;
 
       await usecase.save();
-      finishExercise();
+      // usecase.discard();
+      // finishExercise();
 
       emit(ExerciseSaved(endLocation!));
       emit(ExerciseInitial());
 
     } on ExerciseValidationException catch (e) {
+      finishExercise();
       emit(ExerciseError(e.message));
       emit(ExerciseInitial());
 
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Save failed: $e\n$st');  
       emit(ExerciseError('No se pudo guardar la caminata'));
+    }
+    finally{
+      finishExercise();
     }
   }
 

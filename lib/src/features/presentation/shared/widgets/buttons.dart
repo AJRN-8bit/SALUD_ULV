@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/shadows.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 // import 'package:salud_ulv_app/src/features/presentation/themes/fonts.dart';
 // import 'package:salud_ulv_app/src/features/presentation/themes/dark_theme.dart';
 // // import 'package:salud_ulv_app/src/features/presentation/themes/themes.dart';
@@ -38,56 +40,77 @@ class SelectFieldButton extends StatelessWidget {
 class SimpleButton extends StatelessWidget {
   const SimpleButton({
     super.key,
-    required this.label,
+    this.label,
     required this.onPressed,
+    this.fontSize,
     this.color,
+    this.borderColor,
     this.textColor,
+    this.fullWidth = false,
+    this.maxLines = 1,
+    this.icon
   });
 
-  final String label;
+  final String? label;
   final VoidCallback onPressed;
+  final double? fontSize;
   final Color? color;
+  final Color? borderColor;
   final Color? textColor;
-  // final Color? ;
+  final IconData? icon;
 
+  /// Si es true, el botón toma todo el ancho disponible.
+  /// Si es false, se ajusta al tamaño del texto (hug content).
+  final bool fullWidth;
+
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Material(
+    final button = Material(
       color: Colors.transparent,
-
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(context.spacing.radiusMd),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-
+          padding: EdgeInsets.symmetric(
+            horizontal: context.spacing.md,
+            vertical: context.spacing.md - 6,
+          ),
           decoration: BoxDecoration(
             color: color ?? colors.primary,
             borderRadius: BorderRadius.circular(context.spacing.radiusLg),
-            border: Border.all(
-              color: colors.border,
-            ),
-
-            boxShadow: context.shadows.boxShadow
+            border: Border.all(color: borderColor ?? colors.border),
+            boxShadow: context.shadows.smBoxShadow,
           ),
-          
-          child: Text(
-            label,
+          child: 
+          icon != null ? 
+          Icon(icon, size: context.iconSize.md,)
+          :
+          Text(
+            label ?? '',
+            textAlign: TextAlign.center,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: textColor ?? colors.textPrimary,
               fontWeight: FontWeight.w500,
-              fontSize: 16,
+              fontSize: fontSize ?? context.fontsSize.caption,
             ),
           ),
         ),
       ),
     );
+
+    // fullWidth=true -> ocupa todo el ancho disponible
+    // fullWidth=false -> se ajusta al texto, sin importar el padre (Row/Column)
+    return fullWidth
+        ? SizedBox(width: double.infinity, child: button)
+        : IntrinsicWidth(child: button);
   }
 }
-
 
 
 
@@ -99,20 +122,26 @@ class IconTextTile extends StatelessWidget {
     required this.icon,
     required this.label,
     this.onTap,
+    this.fontSize,
+    this.iconSize,
+    // this.color
     // this.selected = false,
   });
 
   final IconData icon;
+  final double? fontSize;
+  final double? iconSize;
   final String label;
   final VoidCallback? onTap;
+  // final Color? color;
     // final bool selected;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final spacing = context.spacing;
-    final fontSize = context.fonts;
-    final iconSize = context.iconSize;
+    // final fontSize = context.fonts;
+    // final iconSize = context.iconSize;
 
     return Material(
       color: Colors.transparent,
@@ -128,7 +157,7 @@ class IconTextTile extends StatelessWidget {
           ),
 
           decoration: BoxDecoration(
-            color: colors.surface,
+            color: colors.background,
             borderRadius: BorderRadius.circular(spacing.radiusMd),
             border: Border.all(
               color: colors.border,
@@ -140,7 +169,7 @@ class IconTextTile extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: iconSize.sm,
+                size: iconSize ?? context.iconSize.md,
                 color: colors.onSecondary,
               ),
               SizedBox(width: spacing.sm),
@@ -148,7 +177,7 @@ class IconTextTile extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: fontSize.caption,
+                  fontSize: fontSize ?? context.fontsSize.caption,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -234,6 +263,58 @@ class GridActionTile extends StatelessWidget {
 }
 
 
+class CustomIconButton extends StatelessWidget {
+  const CustomIconButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.color,
+    this.iconSize = 24,
+    this.fontSize = 10,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final Color? color;
+  final double iconSize;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = color ?? context.colors.textPrimary;
+    final fg = onPressed == null ? base.withValues(alpha: 0.4) : base;
+
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: fg, size: iconSize),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: fontSize, color: fg),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 // class SelectProgressTypeButton extends StatelessWidget {
 //   final String title;
 //   final Color bgColor;
@@ -271,3 +352,128 @@ class GridActionTile extends StatelessWidget {
 //       ));
 //   }
 // }
+
+
+class CustomSelectableCard<T> extends StatelessWidget {
+  const CustomSelectableCard({
+    super.key,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+    required this.title,
+    this.titleSize,
+    this.info,
+    this.infoSize,
+    this.icon,
+    this.selectedColor,
+    this.unselectedColor,
+    this.backgroundColor,
+    this.selectedBackgroundColor,
+    this.pWidth,
+  });
+
+  final T value;
+  final T? groupValue;
+  final ValueChanged<T> onChanged;
+
+  final String title;
+  final double? titleSize;
+  final String? info;
+  final double? infoSize;
+  final IconData? icon;
+
+  final Color? selectedColor;
+  final Color? unselectedColor;
+  final Color? backgroundColor;
+  final Color? selectedBackgroundColor;
+  final double? pWidth;
+
+  bool get _isSelected => value == groupValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final spacing = context.spacing;
+
+    final selected = _isSelected;
+    final indicatorColor = selected
+        ? (selectedColor ?? colors.primary)
+        : (unselectedColor ?? colors.border);
+
+    return GestureDetector(
+      onTap: () => onChanged(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: pWidth ?? double.infinity,
+        padding: EdgeInsets.all(spacing.md),
+        decoration: BoxDecoration(
+          color: selected
+              ? (selectedBackgroundColor ?? colors.primary.withValues(alpha: 0.08))
+              : (backgroundColor ?? colors.surface),
+          borderRadius: BorderRadius.circular(spacing.radiusMd),
+          border: Border.all(
+            color: selected ? (selectedColor ?? colors.primary) : colors.border,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // selection circle, top-left
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: indicatorColor, width: 2),
+                    color: selected ? indicatorColor : Colors.transparent,
+                  ),
+                  child: selected
+                      ? Icon(Icons.check, size: context.iconSize.sm, color: colors.onPrimary)
+                      : null,
+                ),
+                SizedBox(width: spacing.sm),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (icon != null) ...[
+                            Icon(icon, size: context.iconSize.sm, color: colors.textPrimary),
+                            SizedBox(width: spacing.xs),
+                          ],
+                          Expanded(
+                            child: CustomTextWidget(
+                              label: title,
+                              fontSize: titleSize ?? context.fontsSize.caption,
+                              textAlign: TextAlign.left,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (info != null) ...[
+                        SizedBox(height: spacing.xxs),
+                        CustomTextWidget(
+                          label: info!,
+                          fontSize: infoSize ?? context.fontsSize.caption,
+                          textAlign: TextAlign.left,
+                          color: colors.onSecondary,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

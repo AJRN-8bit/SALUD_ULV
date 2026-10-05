@@ -17,6 +17,7 @@ Future<void> setIDs(
   String activityID,
   String userUUID,
   int categoryID,
+  DateTime date,
 ) async {
   try {
     final db = await _db;
@@ -25,6 +26,7 @@ Future<void> setIDs(
       'activityID': activityID,
       'userUUID': userUUID,
       'categoryID': categoryID,
+      'registeredAt': date.toIso8601String()
     };
 
     final id = await db.insert(
@@ -143,17 +145,20 @@ Future<void> setIDs(
 
 //       await db.delete(
 //   _tableName,
-//   where: 'activityID = ?',
-//   whereArgs: ["1E2D6A45-07FF-4BBD-A5AA-86E5C45C2E95"],
+//   where: 'activityID != ?',
+//   whereArgs: ["113125E4-1125-41E7-8903-1B9AF6819712"],
 // );
 
 
 
 // final result1 = await db.query(
 //   _tableName,
-//   where: 'registeredAt IS NULL',
+//   where: 'userUUID = ?',
+//   whereArgs: [userUUID]
 // );
 
+// debugPrint('list');
+// debugPrint(userUUID);
 // debugPrint(result1.toString());
 
 
@@ -161,7 +166,7 @@ Future<void> setIDs(
         _tableName,
         where: 'userUUID = ?',
         whereArgs: [userUUID],
-        orderBy: 'registeredAt DESC',
+        orderBy: 'registeredAt ASC',
       );
 
 
@@ -223,9 +228,19 @@ Future<void> setIDs(
   }
 
   @override
-  Future<void> delete(String userUUID, String activityID) {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Future<void> delete(String userUUID, String activityID) async {
+    try {
+      final db = await _db;
+
+      await db.delete(
+        _tableName,
+        where: 'userUUID = ? AND activityID = ?',
+        whereArgs: [userUUID, activityID]
+      );
+      
+    } catch (e) {
+      return;
+    }
   }
 }
 

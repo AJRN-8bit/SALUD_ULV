@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:salud_ulv_app/src/core/models/exercise_samples.dart';
+import 'package:salud_ulv_app/src/core/models/exercise_summaries.dart';
 import 'package:salud_ulv_app/src/core/models/exercises.dart';
 import 'package:salud_ulv_app/src/core/repositories/repos/sensors_repo.dart';
 
@@ -50,6 +51,10 @@ abstract class IGetAllExerciseUseCase  {
 
 abstract class IGetALlByFieldExerciseUseCase  {
   Future<List<IPhysicalActivity>?> execute(String field); 
+}
+
+abstract class IGetExerciseSummary {
+  Future<IExerciseSummary?> execute(SummaryPeriod period);
 }
 
 

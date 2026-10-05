@@ -1,20 +1,40 @@
+import 'package:flutter/cupertino.dart';
 import 'package:salud_ulv_app/src/core/repositories/repos/auth_repo.dart';
+import 'package:salud_ulv_app/src/core/repositories/repos/user_repo.dart';
+import 'package:salud_ulv_app/src/core/repositories/services/token_repo.dart';
 import 'package:salud_ulv_app/src/core/repositories/services/token_storage_repo.dart';
 import 'package:salud_ulv_app/src/core/repositories/use-cases/auth_usecase.dart';
 
-class DeleteAccUsecase implements IDeleteAccUseCase{
+class DeleteAccUsecase implements IDeleteAccUseCase {
   final ITokenStorageRepo tokenStorageRepo;
+  final ITokenRepo tokenRepo;
+  final IUserLocalRepo userLocalRepo;
   final IAuthExtRepo authRepo;
 
-  const DeleteAccUsecase(this.authRepo, this.tokenStorageRepo);
-
+  const DeleteAccUsecase(
+    this.authRepo,
+    this.userLocalRepo,
+    this.tokenRepo,
+    this.tokenStorageRepo,
+  );
 
   @override
-  Future<void> execute(String email) async{
+  Future<void> execute() async {
     final token = await tokenStorageRepo.getUserToken();
-    if(token == null) return;
+    if (token == null) return;
 
-    await tokenStorageRepo.deleteToken();
+    final decodedToken = tokenRepo.decode(token);
+    debugPrint("Deleting account: $decodedToken");
+    final data = decodedToken['user'];
+    final email = data['email'];
+    final uuid = data['userUUID'];
+    debugPrint("Deleting account $email");
+    debugPrint("Deleting account $uuid");
+
+    if (email == null) return;
+
     await authRepo.deleteAccount(email);
+    await userLocalRepo.delete(uuid);
+    await tokenStorageRepo.deleteToken();
   }
 }

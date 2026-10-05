@@ -2,12 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class CircularProgressMeter extends StatelessWidget {
   final int amount;
   final int goalAmount;
-  final FaIconData icon;
+  final FaIconData? icon;
   final double size;
   final double strokeWidth;
   final String? label;
@@ -16,7 +18,7 @@ class CircularProgressMeter extends StatelessWidget {
     super.key,
     required this.amount,
     required this.goalAmount,
-    required this.icon,
+    this.icon,
     this.size = 180,
     this.strokeWidth = 14,
     this.label,
@@ -35,6 +37,7 @@ class CircularProgressMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final spacing = context.spacing;
 
     // Protect CustomPaint from invalid dimensions.
     final safeSize = size.isFinite && size > 0 ? size : 180.0;
@@ -56,7 +59,7 @@ class CircularProgressMeter extends StatelessWidget {
               painter: _RingPainter(
                 progress: 1.0,
                 strokeWidth: safeStrokeWidth,
-                color: colors.secondary,
+                color: colors.onSecondary,
               ),
             ),
           ),
@@ -68,8 +71,10 @@ class CircularProgressMeter extends StatelessWidget {
                 progress: _progress,
                 strokeWidth: safeStrokeWidth,
                 gradientColors: [
-                  colors.secondary,
                   colors.primary,
+                  colors.primary,
+                  colors.primary,
+                  // colors.secondary,
                 ],
               ),
             ),
@@ -78,14 +83,17 @@ class CircularProgressMeter extends StatelessWidget {
           // Center content
           Column(
             mainAxisSize: MainAxisSize.min,
+            
             children: [
+              if(icon != null) ...[
               FaIcon(
                 icon,
-                size: safeSize * 0.18,
+                size: context.iconSize.sm,
                 color: colors.primary,
               ),
+             SizedBox(height: spacing.xs),
+              ],
 
-              const SizedBox(height: 6),
 
               Text.rich(
                 TextSpan(
@@ -93,7 +101,7 @@ class CircularProgressMeter extends StatelessWidget {
                     TextSpan(
                       text: '$amount',
                       style: TextStyle(
-                        fontSize: safeSize * 0.14,
+                        fontSize: context.fontsSize.headline,
                         fontWeight: FontWeight.bold,
                         color: colors.textPrimary,
                       ),
@@ -101,9 +109,9 @@ class CircularProgressMeter extends StatelessWidget {
                     TextSpan(
                       text: ' / $goalAmount',
                       style: TextStyle(
-                        fontSize: safeSize * 0.09,
+                        fontSize: context.fontsSize.body,
                         fontWeight: FontWeight.w400,
-                        color: colors.textSecondary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ],
@@ -111,13 +119,11 @@ class CircularProgressMeter extends StatelessWidget {
               ),
 
               if (label != null && label!.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  label!,
-                  style: TextStyle(
-                    fontSize: safeSize * 0.07,
-                    color: colors.textSecondary,
-                  ),
+                SizedBox(height: spacing.xs),
+                CustomTextWidget(
+                  label: label!,
+                  fontSize: context.fontsSize.caption,
+                 
                 ),
               ],
             ],

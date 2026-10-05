@@ -1,5 +1,6 @@
 
 import 'package:salud_ulv_app/src/core/models/exercise_samples.dart';
+import 'package:salud_ulv_app/src/core/models/exercise_summaries.dart';
 import 'package:salud_ulv_app/src/core/models/exercises.dart';
 
 abstract class ExerciseState {}
@@ -22,6 +23,11 @@ class ExerciseListLoaded extends ExerciseState {
 class ExerciseSamplesLoaded extends ExerciseState {
   final List<IActivitySample>? data;
   ExerciseSamplesLoaded(this.data);
+}
+
+class ExerciseSummaryLoaded extends ExerciseState{
+  final IExerciseSummary? summary;
+  ExerciseSummaryLoaded(this.summary);
 }
 
 class ExerciseError extends ExerciseState {

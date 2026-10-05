@@ -23,6 +23,8 @@ abstract class IUserLocalRepo extends IUsersLocalRepo {
 
 abstract class IMemberLocalRepo extends IUsersLocalRepo {
   Future<void> saveInfo(MemberInfo memberInfo);
+  Future<void> setGender(String userUUID, String gender);
+  Future<String?> getGender(String userUUID);
 
   Future<void> setGroupID(String userUUID, int groupID);
   Future<int?> getGroupID(String userUUID);

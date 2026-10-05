@@ -17,7 +17,7 @@ import 'package:salud_ulv_app/src/features/presentation/screens/main_wrapper.dar
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/video_widget.dart';
 import 'package:video_player/video_player.dart';
 
@@ -69,13 +69,11 @@ class _SplashPageState extends State<_SplashPage> {
       });
   }
 
-
   @override
   void dispose() {
     _controller.pause();
     _controller.dispose();
     super.dispose();
-
   }
 
   @override
@@ -85,6 +83,10 @@ class _SplashPageState extends State<_SplashPage> {
       body: VideoBackgroundContainer(
         videoAsset: 'assets/videos/splash_video1.mp4',
         overlayOpacity: 0.65,
+        colors: [Colors.black.withAlpha(100),
+              Colors.black.withAlpha(200),
+              Colors.black,],
+        stops: [0.4, 0.5, 0.7],
 
         child: SafeArea(
           top: true,
@@ -113,30 +115,37 @@ class _SplashPageState extends State<_SplashPage> {
                   children: [
                     Spacer(),
 
-
                     Align(
                       alignment: .bottomLeft,
                       child: Column(
-                        crossAxisAlignment: .start,
+                        crossAxisAlignment: .stretch,
 
                         children: [
-                          Image.asset(
-                            'assets/logos/logoV1.png',
-                            height: 125,
-                            width: 125,
-                            // color: const Color.fromARGB(255, 29, 29, 29).withAlpha(1000),
-                            colorBlendMode: BlendMode.modulate,
+                          Row(
+                            mainAxisSize: .min,
+                            children: [
+                              GradientText(
+                                text: "Salud ULV",
+                                colors: [
+                                  context.colors.primary,
+                                  context.colors.onSecondary,
+                                ],
+                                fontSize: context.fontsSize.display,
+                                fontWeight: FontWeight.w900,
+                              ),
+
+                              SizedBox(width: context.spacing.xxl),
+
+                              Image.asset(
+                                'assets/logos/logoV2.png',
+                                height: 50,
+                                width: 50,
+                                // color: const Color.fromARGB(255, 29, 29, 29).withAlpha(1000),
+                                colorBlendMode: BlendMode.modulate,
+                              ),
+                            ],
                           ),
 
-                          GradientText(
-                            text: "Salud ULV",
-                            colors: [
-                              context.colors.primary,
-                              context.colors.onSecondary,
-                            ],
-                            fontSize: context.fontsSize.display,
-                            fontWeight: FontWeight.w900,
-                          ),
                           SizedBox(height: context.spacing.sm),
 
                           CustomTextWidget(
@@ -149,32 +158,42 @@ class _SplashPageState extends State<_SplashPage> {
                           ),
                           SizedBox(height: context.spacing.xl),
 
-                          Row(
-                            mainAxisAlignment: .center,
-                            children: [
-                              SimpleButton(
-                                label: "Registrate",
-                                color: Colors.transparent,
-                                textColor: context.colors.border,
-                                onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpPage()));
-                                }
-                              ),
-
-                              SizedBox(width: context.spacing.xxl),
-                              SimpleButton(
-                                label: "Inicia sesión",
-                                color: Colors.transparent,
-                                textColor: context.colors.border,
-                                onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => SignInPage()));
-                                }
-                              ),
-                            ],
+                          SimpleButton(
+                            label: "Registrate",
+                            fontSize: context.fontsSize.body,
+                            color: Colors.transparent,
+                            fullWidth: true,
+                            textColor: context.colors.border,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignUpPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: context.spacing.sm),
+                          
+                          // SizedBox(width: context.spacing.md),
+                          
+                          SimpleButton(
+                            label: "Inicia sesión",
+                            fontSize: context.fontsSize.body,
+                            color: Colors.transparent,
+                            fullWidth: true,
+                            textColor: context.colors.border,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignInPage(),
+                                ),
+                              );
+                            },
                           ),
 
-                          SizedBox(height: context.spacing.xxl),
-
+                          SizedBox(height: context.spacing.md),
                         ],
                       ),
                     ),

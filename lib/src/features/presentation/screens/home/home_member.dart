@@ -10,6 +10,9 @@ import 'package:salud_ulv_app/src/core/usecase/exercises/send_exercise.dart';
 import 'package:salud_ulv_app/src/core/usecase/profile/get_profile_info_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/profile/get_user_name.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/main_wrapper.dart';
+import 'package:salud_ulv_app/src/features/presentation/screens/records/anthropometrics/anthro_records_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/screens/records/exercise/walk/walk_records_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/animations.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/data_tiles.dart';
@@ -42,7 +45,7 @@ import 'package:salud_ulv_app/src/features/presentation/screens/profile/profile_
 import 'package:salud_ulv_app/src/features/presentation/screens/records/main_records_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class MemberHomePage extends StatelessWidget {
   const MemberHomePage({super.key});
@@ -122,12 +125,10 @@ class _MemberHomePage extends StatefulWidget {
 }
 
 class _MemberHomePageState extends State<_MemberHomePage> {
-
-    String _formatDuration(Duration d) {
+  String _formatDuration(Duration d) {
     return '${d.inMinutes.toString().padLeft(2, '0')}:'
         '${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
-
 
   @override
   void initState() {
@@ -223,7 +224,7 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: CustomTextWidget(
-                                  label: "Hola, ${state.name[0]}",
+                                  label: "¡Hola, ${state.name[0]}!",
                                   fontSize: context.fontsSize.headline,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -239,9 +240,11 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                                     ),
                                   );
                                 },
-                                child: const CircleAvatar(
-                                  radius: 22,
-                                  child: Icon(Icons.person),
+                                child: Column(
+                                  children: [
+                                    InitialsAvatar(firstName: state.name[0], lastName: state.name[1], size: context.iconSize.xl + 20,),
+                                    // CustomTextWidget(label: 'Perfil', fontSize: context.fontsSize.caption),
+                                  ],
                                 ),
                               ),
                             ],
@@ -251,11 +254,7 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                       },
                     ),
 
-
-
-                    SizedBox(height: context.spacing.xxl),
-
-
+                    SizedBox(height: context.spacing.lg),
 
                     BlocBuilder<ExerciseGetRecentBloc, ExerciseState>(
                       builder: (context, state) {
@@ -284,9 +283,9 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                                 // SizedBox(height: context.spacing.lg),
 
                                 SimpleButton(
-                                  
                                   label: "Agregar caminata",
-                                  color: context.colors.surface,
+                                  color: context.colors.secondary,
+                                  textColor: context.colors.textSecondary,
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -307,71 +306,116 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                             // mainAxisAlignment: .center,
                             crossAxisAlignment: .start,
                             children: [
-                              CustomTextWidget(
-                                label: "Caminata reciente",
-                                fontSize: context.fontsSize.title,
-                                fontWeight: FontWeight.w700,
+                              Row(
+                                // crossAxisAlignment: .stretch,
+                                mainAxisAlignment: .spaceBetween,
+                                children: [
+                                  CustomTextWidget(
+                                    label: "Haz logrado ${walk.steps} pasos",
+                                    fontSize: context.fontsSize.body,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  // SizedBox(width: context.spacing.xxl,),
+
+                                  SimpleButton(
+                                    label: "Ver más",
+                                    // color: Colors.transparent,
+                                    fontSize: context.fontsSize.details,
+                                    color: context.colors.surface,
+                                    // borderColor: context.colors.textPrimary,
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const WalkRecordsPage(),
+                                      ),
+                                    ),
+                                  ),
+
+                                  // GestureDetector(
+                                  //   child: CustomTextWidget(
+                                  //     label: "Ver más",
+                                  //     fontSize: context.fontsSize.caption,
+                                  //     fontWeight: FontWeight.w700,
+                                  //   ),
+                                  //   onTap: () => Navigator.push(
+                                  //     context,
+                                  //     MaterialPageRoute(
+                                  //       builder: (context) =>
+                                  //           const WalkRecordsPage(),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
                               ),
 
-                              SizedBox(height: context.spacing.md),
+                              // SizedBox(height: context.spacing.md),
 
-                              CustomListView(
-                                orientation: .horizontal,
-                                scrollable: true,
-                                widgets: [
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.ruler,
-                                    label: "Distancia",
-                                    data: walk.distance!.toStringAsFixed(2),
-                                    sufix: 'm',
-                                  ),
+                              AutoScrollAnimation(
+                                enabled: true,
+                                speed: 10,
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.stopwatch,
-                                    label: "Duración",
-                                    // data: '${walk.duration!.inHours}:${walk.duration!.inMinutes / 60}:${walk.duration!.inSeconds / 60}',
-                                    data: _formatDuration(walk.duration!),
-                                    sufix: '',
-                                  ),
+                                builder: (context, controller) => CustomListView(
+                                  controller: controller,
+                                  orientation: .horizontal,
+                                  scrollable: true,
+                                  // spacing: 34,
+                                  // runSpacing: 34,
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.fireFlameCurved,
-                                    label: "Calorias quemadas",
-                                    data: walk.caloriesBurned!.toStringAsFixed(
-                                      2,
+                                  widgets: [
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.ruler,
+                                      label: "Distancia",
+                                      data: walk.distance!.toStringAsFixed(2),
+                                      sufix: 'm',
                                     ),
-                                    sufix: 'cal',
-                                  ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.mountain,
-                                    label: "Elevación ganada",
-                                    data: walk.elevationGain!.toStringAsFixed(
-                                      2,
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.stopwatch,
+                                      label: "Duración",
+                                      // data: '${walk.duration!.inHours}:${walk.duration!.inMinutes / 60}:${walk.duration!.inSeconds / 60}',
+                                      data: _formatDuration(walk.duration!),
+                                      sufix: '',
                                     ),
-                                    sufix: 'm',
-                                  ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.timeline,
-                                    label: "Ritmo",
-                                    data: walk.avgPace!.toStringAsFixed(2),
-                                    sufix: 'min/km',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.fireFlameCurved,
+                                      label: "Calorias quemadas",
+                                      data: walk.caloriesBurned!
+                                          .toStringAsFixed(2),
+                                      sufix: 'cal',
+                                    ),
 
-                                  // GridDataTile(
-                                  //   icon: FontAwesomeIcons.shoePrints,
-                                  //   label: "Pasos por minuto",
-                                  //   data: walk.avgSteps!.toStringAsFixed(1),
-                                  //   sufix: 'min/km'
-                                  // ),
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.personWalking,
-                                    label: "Pasos por minuto",
-                                    data: walk.avgCadence!.toStringAsFixed(2),
-                                    sufix: '',
-                                  ),
-                                ],
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.mountain,
+                                      label: "Elevación ganada",
+                                      data: walk.elevationGain!.toStringAsFixed(
+                                        2,
+                                      ),
+                                      sufix: 'm',
+                                    ),
+
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.timeline,
+                                      label: "Ritmo",
+                                      data: walk.avgPace!.toStringAsFixed(2),
+                                      sufix: 'min/km',
+                                    ),
+
+                                    // GridDataTile(
+                                    //   icon: FontAwesomeIcons.shoePrints,
+                                    //   label: "Pasos por minuto",
+                                    //   data: walk.avgSteps!.toStringAsFixed(1),
+                                    //   sufix: 'min/km'
+                                    // ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.personWalking,
+                                      label: "Pasos por minuto",
+                                      data: walk.avgCadence!.toStringAsFixed(2),
+                                      sufix: '',
+                                    ),
+                                  ],
+                                ),
                               ),
                               //
                             ],
@@ -397,7 +441,8 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                                 // SizedBox(height: context.spacing.md),
 
                                 CustomTextWidget(
-                                  label: "¿Quieres ver tus antropométricos recientes?",
+                                  label:
+                                      "¿Quieres ver tus antropométricos recientes?",
                                   fontSize: context.fontsSize.body,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -410,14 +455,14 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                                 // SizedBox(height: context.spacing.lg),
 
                                 SimpleButton(
-                                  
                                   label: "Agregar antropométricos",
-                                  
-                                  color: context.colors.surface,
+                                  textColor: context.colors.textSecondary,
+                                  color: context.colors.secondary,
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => RegisterAnthroPage(),
+                                      builder: (context) =>
+                                          RegisterAnthroPage(),
                                     ),
                                   ),
                                 ),
@@ -429,74 +474,102 @@ class _MemberHomePageState extends State<_MemberHomePage> {
                             crossAxisAlignment: .start,
 
                             children: [
-                              CustomTextWidget(
-                                label: "Antropométricos recientes",
-                                fontSize: context.fontsSize.title,
-                                fontWeight: FontWeight.w700,
+                              Row(
+                                // crossAxisAlignment: .stretch,
+                                mainAxisAlignment: .spaceBetween,
+                                children: [
+                                  CustomTextWidget(
+                                    label: "Antropometría reciente",
+                                    fontSize: context.fontsSize.body,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  // SizedBox(width: context.spacing.xxl,),
+
+                                  SimpleButton(
+                                    
+                                      label: "Ver más",
+                                      fontSize: context.fontsSize.details,
+                                    color: context.colors.surface,
+                                    // borderColor: context.colors.textPrimary,
+                                    onPressed:() => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AnthroRecordsPage(),
+                                      ),
+                                    ),
+                                    ),
+                                  
+                                ],
                               ),
 
-                              SizedBox(height: context.spacing.md),
+                              // SizedBox(height: context.spacing.md),
 
-                              CustomListView(
-                                widgets: [
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.person,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "Altura",
-                                    data: "${(state.data!.height) / 100}",
-                                    sufix: 'm',
-                                  ),
+                              AutoScrollAnimation(
+                                enabled: true,
+                                speed: 10,
+                                builder: (context, controller) => CustomListView(
+                                  controller: controller,
+                                  widgets: [
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.person,
+                                      iconColor: context.colors.secondary,
+                                      label: "Altura",
+                                      data: "${(state.data!.height) / 100}",
+                                      sufix: 'm',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.weightScale,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "Peso",
-                                    // data: '${walk.duration!.inHours}:${walk.duration!.inMinutes / 60}:${walk.duration!.inSeconds / 60}',
-                                    data: state.data!.weight.toString(),
-                                    sufix: 'kg',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.weightScale,
+                                      iconColor: context.colors.secondary,
+                                      label: "Peso",
+                                      // data: '${walk.duration!.inHours}:${walk.duration!.inMinutes / 60}:${walk.duration!.inSeconds / 60}',
+                                      data: state.data!.weight.toString(),
+                                      sufix: 'kg',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.dumbbell,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "SMM",
-                                    data: state.data!.smm.toString(),
-                                    sufix: 'kg',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.dumbbell,
+                                      iconColor: context.colors.secondary,
+                                      label: "SMM",
+                                      data: state.data!.smm.toString(),
+                                      sufix: 'kg',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.weightHanging,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "Masa de grasa",
-                                    data: state.data!.fatMass.toString(),
-                                    sufix: 'kg',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.weightHanging,
+                                      iconColor: context.colors.secondary,
+                                      label: "M. Grasa",
+                                      data: state.data!.fatMass.toString(),
+                                      sufix: 'kg',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.percent,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "Grasa corporal",
-                                    data: state.data!.bodyFatPercentage
-                                        .toString(),
-                                    sufix: '%',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.percent,
+                                      iconColor: context.colors.secondary,
+                                      label: "Grasa ",
+                                      data: state.data!.bodyFatPercentage
+                                          .toString(),
+                                      sufix: '%',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.weightScale,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "IMC",
-                                    data: state.data!.bmi.toString(),
-                                    sufix: 'kg/m²',
-                                  ),
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.weightScale,
+                                      iconColor: context.colors.secondary,
+                                      label: "IMC",
+                                      data: state.data!.bmi.toString(),
+                                      sufix: 'kg/m²',
+                                    ),
 
-                                  GridDataTile(
-                                    icon: FontAwesomeIcons.rulerHorizontal,
-                                    iconColor: context.colors.onTertiary,
-                                    label: "ICC",
-                                    data: state.data!.whr.toString(),
-                                    // sufix: '',
-                                  ),
-                                ],
+                                    GridDataTile(
+                                      icon: FontAwesomeIcons.rulerHorizontal,
+                                      iconColor: context.colors.secondary,
+                                      label: "ICC",
+                                      data: state.data!.whr.toString(),
+                                      // sufix: '',
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           );

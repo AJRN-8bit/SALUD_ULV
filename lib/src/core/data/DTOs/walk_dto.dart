@@ -51,7 +51,7 @@ class WalkDTO extends AerobicsDTO {
       // activityType: map['activityType'] as String?,
       duration: Duration(milliseconds: map['duration_ms'] as int),
       caloriesBurned: (map['caloriesBurned'] as num?)?.toDouble() ?? 0,
-      registeredAt: map['registeredAt'] != null ? DateTime.parse(map['registeredAt'] as String).toLocal() : null,
+      registeredAt: map['registeredAt'] != null ? DateTime.parse(map['registeredAt'] as String).toLocal() : DateTime.now(),
 
       distance: (map['distance'] as num?)?.toDouble() ?? 0,
       avgPace: (map['avgPace'] as num?)?.toDouble() ?? 0,

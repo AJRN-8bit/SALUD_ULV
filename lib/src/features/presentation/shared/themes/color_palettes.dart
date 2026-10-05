@@ -15,6 +15,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.textSecondary,
     required this.success,
     required this.warning,
+    required this.low,
     required this.danger,
     required this.border,
   });
@@ -31,6 +32,7 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color textSecondary;
   final Color success;
   final Color warning;
+  final Color low;
   final Color danger;
   final Color border;
 
@@ -51,8 +53,8 @@ class AppColors extends ThemeExtension<AppColors> {
   // );
 
   static const light = AppColors(
-    background: Color(0xFFFAFCFD),
-    surface: Color.fromARGB(255, 237, 237, 237),
+    background: Color(0xFFFAFAFA),
+    surface: Color.fromARGB(255, 255, 255, 255),
     primary:  Color(0xFFE4EC81),
     onPrimary:  Color(0xFF9BC43C),
     secondary: Color(0xFF56992F),
@@ -60,9 +62,10 @@ class AppColors extends ThemeExtension<AppColors> {
     tertiary: Color(0xFF115566),
     onTertiary: Color.fromARGB(255, 228, 190, 38),
     textPrimary: Color(0xFF111111),
-    textSecondary: Color.fromARGB(255, 201, 206, 214),
+    textSecondary: Color(0xFFFAFCFD),
     success: Color.fromARGB(255, 21, 145, 33),
     warning: Color.fromARGB(255, 209, 145, 25),
+    low: Colors.blue,
     danger: Color.fromARGB(255, 200, 25, 25),
     border: Color(0xFFE5E7EB),
   );
@@ -70,17 +73,18 @@ class AppColors extends ThemeExtension<AppColors> {
   static const dark = AppColors(
     background: Color(0xFF151912),
     surface: Color(0xFF212121),
-    primary: Color(0xFF232B22),
-    onPrimary: Color(0xFF2D352A),
-    secondary: Color(0xFF3D2A1F),
-    onSecondary: Color(0xFF6E4A33),
-    tertiary: Color(0xFF2B1B08),
-    onTertiary: Color(0xFF4A3315),
+    primary: Color.fromARGB(255, 5, 98, 50),
+    onPrimary: Color.fromARGB(255, 0, 165, 20),
+    secondary: Color.fromARGB(255, 22, 171, 156),
+    onSecondary: Color.fromARGB(255, 9, 98, 78),
+    tertiary: Color.fromARGB(255, 13, 72, 131),
+    onTertiary: Color.fromARGB(255, 11, 18, 91),
     textPrimary: Color(0xFFE7E0D0),
     textSecondary: Color.fromARGB(255, 197, 197, 197),
-    success: Color(0xFF6E7A56),
-    warning: Color(0xFFB27A3D),
-    danger: Color(0xFF8B4A3D),
+    success: Color.fromARGB(255, 88, 157, 24),
+    warning: Color.fromARGB(255, 178, 117, 52),
+    low: Color.fromARGB(255, 52, 144, 178),
+    danger: Color.fromARGB(255, 157, 62, 43),
     border: Color.fromARGB(255, 199, 199, 199),
   );
 
@@ -99,6 +103,7 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? textSecondary,
     Color? success,
     Color? warning,
+    Color? low,
     Color? danger,
     Color? border,
   }) {
@@ -115,6 +120,7 @@ class AppColors extends ThemeExtension<AppColors> {
       textSecondary: textSecondary ?? this.textSecondary,
       success: success ?? this.success,
       warning: warning ?? this.warning,
+      low: low ?? this.low,
       danger: danger ?? this.danger,
       border: border ?? this.border,
     );
@@ -136,6 +142,7 @@ class AppColors extends ThemeExtension<AppColors> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      low: Color.lerp(low, other.low, t)!,
       danger: Color.lerp(danger, other.danger, t)!,
       border: Color.lerp(border, other.border, t)!,
     );

@@ -13,6 +13,10 @@ abstract class ISelectRoleUseCase{
   Future<String?> execute(String role);
 }
 
+abstract class ISetGenderUseCase{
+  Future<void> execute(String gender);
+}
+
 abstract class IGetUserNameUseCase {
   Future<List<String>?> execute();
 }

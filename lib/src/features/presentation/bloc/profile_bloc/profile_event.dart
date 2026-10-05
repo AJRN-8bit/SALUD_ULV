@@ -11,3 +11,8 @@ class SelectRoleEvent extends ProfileEvent{
 
   SelectRoleEvent(this.role);
 }
+
+class SetGenderEvent extends ProfileEvent{
+  final String gender;
+  SetGenderEvent(this.gender);
+}

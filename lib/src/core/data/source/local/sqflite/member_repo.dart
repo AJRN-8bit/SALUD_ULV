@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:salud_ulv_app/src/core/models/member.dart';
 import 'package:salud_ulv_app/src/core/data/DTOs/member_dto.dart';
@@ -12,6 +13,8 @@ class MemberLocalRepo implements IUsersLocalRepo, IMemberLocalRepo {
   Future<Database> get _db async => await AppDatabase.database;
   final CurrentUserSession currentUserSession = CurrentUserSession();
 
+  final _tableName = 'Members';
+
   @override
   Future<void> saveInfo(MemberInfo memberInfo) async {
     try {
@@ -22,12 +25,7 @@ class MemberLocalRepo implements IUsersLocalRepo, IMemberLocalRepo {
       final model = MemberInfoDTO.fromDomain(memberInfo).toMap();
       debugPrint(model.toString());
 
-      await db.insert(
-        'Members', 
-        model, 
-        conflictAlgorithm: .replace
-        );
-        
+      await db.insert('Members', model, conflictAlgorithm: .replace);
     } catch (e) {
       debugPrint(e.toString());
       throw Exception('Error saving member info');
@@ -69,18 +67,20 @@ class MemberLocalRepo implements IUsersLocalRepo, IMemberLocalRepo {
         email: userResult.email,
         currentRole: userResult.currentRole,
         // dateOfBirth: memberResult.dateOfBirth,
-        // gender: memberResult.gender,
+        gender: memberResult.gender,
+        // gender: 'helo',
         // age: memberResult.age
         dateOfBirth: DateTime.now(),
-        gender: 'female',
-        age: 56,
-      ).toDomain();
+        // gender: 'female',
+        age: 0,
+        createdAt: userResult.createdAt
+      ).toMemberDomain();
 
       debugPrint('In db getting member: ${result.toString()}');
 
       return result;
     } catch (e) {
-      throw Exception("Couldn't get current user");
+      throw Exception("Couldn't get current member");
     }
   }
 
@@ -149,6 +149,52 @@ class MemberLocalRepo implements IUsersLocalRepo, IMemberLocalRepo {
     } catch (e) {
       debugPrint(e.toString());
       throw Exception("Couldn't get type ID");
+    }
+  }
+
+  @override
+  Future<void> setGender(String userUUID, String gender) async {
+    try {
+      final db = await _db;
+
+      final genderMap = {'gender': gender};
+
+      await db.update(
+        _tableName,
+        genderMap,
+        where: 'userUUID = ?',
+        whereArgs: [userUUID],
+        conflictAlgorithm: .replace,
+      );
+
+      return;
+    } catch (e) {
+      debugPrint(e.toString());
+      throw Exception("Couldn't set gender");
+    }
+  }
+
+  @override
+  Future<String?> getGender(String userUUID) async {
+    try {
+      final db = await _db;
+
+      final result = await db.query(
+        _tableName,
+        where: 'userUUID = ?',
+        whereArgs: [userUUID],
+      );
+
+      if(result.isEmpty) return null;
+
+      final gender = result.first['gender'] as String?;
+
+      return gender;
+
+
+    } catch (e) {
+      debugPrint(e.toString());
+      throw Exception("Couldn't get gender");
     }
   }
 

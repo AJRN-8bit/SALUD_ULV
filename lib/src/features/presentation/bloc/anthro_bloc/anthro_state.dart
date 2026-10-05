@@ -32,6 +32,12 @@ class AnthroFieldListLoaded extends AnthroState{
   AnthroFieldListLoaded(this.data);
 }
 
+class AnthroEvaluated extends AnthroState{
+  final Map<String, ({num max, num min})>? anthroRanges;
+  final Map<String, num>? anthroAlerts;
+  AnthroEvaluated(this.anthroRanges, this.anthroAlerts);
+}
+
 
 class AnthroError extends AnthroState{
   final String message;

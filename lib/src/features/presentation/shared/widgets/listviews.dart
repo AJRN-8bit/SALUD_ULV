@@ -16,6 +16,16 @@ class CustomListView extends StatelessWidget {
   final WrapAlignment wrapAlignment;
   final bool addContentPadding;
   final int lines;
+  final ScrollController? controller;
+  final bool keepAlives;
+
+  /// Horizontal mode: height of each line.
+  /// A horizontal ListView can't size itself to its content.
+  final double height;
+
+  /// Vertical mode: width of each line, used only when the parent
+  /// gives no width bound (e.g. inside a Row).
+  final double width;
 
   const CustomListView({
     super.key,
@@ -29,6 +39,10 @@ class CustomListView extends StatelessWidget {
     this.wrapAlignment = WrapAlignment.start,
     this.addContentPadding = false,
     this.lines = 1,
+    this.controller,
+    this.keepAlives = true,
+    this.height = 120,
+    this.width = 150,
   }) : assert(lines > 0, 'lines debe ser al menos 1');
 
   @override
@@ -39,45 +53,48 @@ class CustomListView extends StatelessWidget {
     final _runSpacing = runSpacing ?? _spacing;
     final isHorizontal = orientation == RowOrientation.horizontal;
 
-    Widget buildSingleLine(List<Widget> lineWidgets) {
-      final spacedWidgets = <Widget>[];
-      for (int i = 0; i < lineWidgets.length; i++) {
-        spacedWidgets.add(lineWidgets[i]);
-        if (i != lineWidgets.length - 1) {
-          spacedWidgets.add(
-            isHorizontal
-                ? SizedBox(width: _spacing)
-                : SizedBox(height: _spacing),
-          );
-        }
-      }
-
+    Widget buildSingleLine(
+      List<Widget> lineWidgets, {
+      ScrollController? lineController,
+    }) {
       if (scrollable) {
-    final flex = isHorizontal
-        ? Row(
-            crossAxisAlignment: crossAxisAlignment,
-            mainAxisSize: MainAxisSize.min,
-            children: spacedWidgets,
-          )
-        : Column(
-            crossAxisAlignment: crossAxisAlignment,
-            mainAxisSize: MainAxisSize.min,
-            children: spacedWidgets,
-          );
+        final list = ListView.separated(
+          controller: lineController,
+          scrollDirection: isHorizontal ? Axis.horizontal : Axis.vertical,
+          // Vertical: size to content. Horizontal: height comes from the SizedBox.
+          shrinkWrap: !isHorizontal,
+          clipBehavior: Clip.hardEdge,
+          addAutomaticKeepAlives: keepAlives,
+          padding: !addContentPadding
+              ? EdgeInsets.zero
+              : isHorizontal
+                  ? EdgeInsets.symmetric(vertical: _spacing * 1.5, horizontal: 4)
+                  : EdgeInsets.symmetric(horizontal: _spacing, vertical: 4),
+          itemCount: lineWidgets.length,
+          itemBuilder: (context, i) {
+            return Align(
+              alignment: _alignmentFor(crossAxisAlignment, isHorizontal),
+              widthFactor: isHorizontal ? 1 : null,
+              heightFactor: isHorizontal ? null : 1,
+              child: lineWidgets[i],
+            );
+          },
+          separatorBuilder: (_, __) => isHorizontal
+              ? SizedBox(width: _spacing)
+              : SizedBox(height: _spacing),
+        );
 
-    return SingleChildScrollView(
-      scrollDirection: isHorizontal ? Axis.horizontal : Axis.vertical,
+        if (isHorizontal) {
+          return SizedBox(height: height, child: list);
+        }
 
-      clipBehavior: Clip.hardEdge,
-
-      padding: !addContentPadding
-        ? EdgeInsets.zero
-        : isHorizontal 
-              ? EdgeInsets.symmetric(vertical: _spacing * 1.5 , horizontal: 4)
-              : EdgeInsets.symmetric(horizontal: _spacing , vertical: 4),
-      child: flex,
-    );
-  }
+        // Vertical + shrinkWrap needs a bounded width.
+        return LayoutBuilder(
+          builder: (context, constraints) => constraints.hasBoundedWidth
+              ? list
+              : SizedBox(width: width, child: list),
+        );
+      }
 
       return Wrap(
         direction: isHorizontal ? Axis.horizontal : Axis.vertical,
@@ -94,13 +111,8 @@ class CustomListView extends StatelessWidget {
     Widget content;
 
     if (lines <= 1) {
-      // Caso por defecto: una sola línea, igual que antes.
-      content = buildSingleLine(widgets);
+      content = buildSingleLine(widgets, lineController: controller);
     } else {
-      // Reparte los widgets en `lines` grupos, en orden, y apila
-      // cada grupo como su propia línea independiente en el eje
-      // cruzado (Column de Rows si es horizontal, Row de Columns
-      // si es vertical).
       final perLine = (widgets.length / lines).ceil();
       final chunks = <List<Widget>>[];
 
@@ -112,6 +124,7 @@ class CustomListView extends StatelessWidget {
 
       final lineWidgets = <Widget>[];
       for (int i = 0; i < chunks.length; i++) {
+        // The controller is only used with a single line.
         lineWidgets.add(buildSingleLine(chunks[i]));
         if (i != chunks.length - 1) {
           lineWidgets.add(
@@ -135,15 +148,20 @@ class CustomListView extends StatelessWidget {
             );
     }
 
-    return Padding(
-      padding: padding,
-      child: content,
-    );
+    return Padding(padding: padding, child: content);
+  }
+
+  Alignment _alignmentFor(CrossAxisAlignment a, bool isHorizontal) {
+    switch (a) {
+      case CrossAxisAlignment.start:
+        return isHorizontal ? Alignment.topCenter : Alignment.centerLeft;
+      case CrossAxisAlignment.end:
+        return isHorizontal ? Alignment.bottomCenter : Alignment.centerRight;
+      default:
+        return Alignment.center;
+    }
   }
 }
-
-
-
 
 
 

@@ -7,7 +7,11 @@ import 'package:salud_ulv_app/src/core/usecase/location/get_current_position.dar
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/accelerometer_sensor.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/geolocator_sensor.dart';
 import 'package:salud_ulv_app/src/core/data/source/token/current_user_service.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/data_tiles.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/exercise_traker_widgets.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/expandable_sheet.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/listviews.dart';
 import 'package:salud_ulv_app/src/features/services/location_permition.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_repo.dart';
@@ -69,7 +73,7 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
   LatLng? startPoint;
   LatLng? endPoint;
   final points = <LatLng>[];
-  bool _followUser = true;
+  bool _satellite = true;
 
   void _userCurrentLocation(BuildContext context) {
     final state = context.read<GetCurrentLocationBloc>().state;
@@ -94,10 +98,6 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    String formatDuration(Duration d) {
-      return '${d.inMinutes.toString().padLeft(2, '0')}:'
-          '${(d.inSeconds % 60).toString().padLeft(2, '0')}';
-    }
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -106,7 +106,7 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
         providers: [
           BlocListener<ExerciseTrackingBloc, ExerciseTrackingState>(
             listener: (context, state) {
-                debugPrint('Puntos recorridos: $points');
+              debugPrint('Puntos recorridos: $points');
 
               if (state is TrackingExercise &&
                   state.startLocation != null &&
@@ -170,10 +170,7 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
               if (state is ExerciseError) {
                 CustomSnackBar.showError(context, state.message);
               }
-
             },
-
-            
           ),
         ],
 
@@ -181,14 +178,13 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
           children: [
             BlocListener<GetCurrentLocationBloc, LocationState>(
               listener: (context, state) {
-
                 if (state is CurrentLocationLoaded) {
                   final location = LatLng(
                     state.currentLocation.latitude,
                     state.currentLocation.longitude,
                   );
 
-                  if (_followUser) {
+                  if (_satellite) {
                     _mapController.move(location, 18);
                   }
 
@@ -204,128 +200,54 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
                 routePoints: points,
                 endPoint: endPoint,
                 mapController: _mapController,
+                satellite: _satellite,
               ),
             ),
 
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
-              left: 16,
-              right: 16,
-              child: BlocBuilder<ExerciseTrackingBloc, ExerciseTrackingState>(
-                builder: (context, state) {
-                  debugPrint('listado de puntos: $points');
+            ExpandableSheet(
+              initialSize: 0.2,
+              minSize: 0.2,
+              maxSize: 0.5,
+              child: TrackingSheetContent()),
 
-                  final hasData = state is ActiveExerciseState;
-
-                  final stats = hasData
-                      ? [
-                          ExerciseStat(
-                            icon: Icons.directions_walk_rounded,
-                            label: 'Pasos',
-                            value: state.steps != null
-                                ? '${state.steps}'
-                                : '--',
-                          ),
-                          ExerciseStat(
-                            icon: Icons.straighten_rounded,
-                            label: 'Distancia',
-                            value: state.distance != null && state.distance! > 0
-                                ? '${(state.distance! / 1000).toStringAsFixed(1)} km'
-                                : '--',
-                          ),
-                        ]
-                      : const <ExerciseStat>[];
-
-                  return exerciseInfoCard(
-                    context,
-                    title: 'Caminata',
-                    icon: Icons.directions_walk_rounded,
-                    statusLabel: state is ExercisePaused
-                        ? 'Pausado'
-                        : state is TrackingExercise
-                        ? 'En progreso'
-                        : 'Listo para comenzar',
-                    isTracking: state is TrackingExercise,
-                    time: hasData ? formatDuration(state.timeElapsed) : '--:--',
-                    stats: stats,
-                  );
-                },
-              ),
-            ),
-
-            // BOTTOM CONTROLS
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: MediaQuery.of(context).padding.bottom + 20,
-              child: BlocBuilder<ExerciseTrackingBloc, ExerciseTrackingState>(
-                builder: (context, state) {
-                  return exerciseControls(
-                    context,
-                    mode: state is ExerciseInitial
-                        ? ExerciseControlsMode.initial
-                        : state is TrackingExercise
-                        ? ExerciseControlsMode.tracking
-                        : ExerciseControlsMode.paused,
-                    onStart: () => context.read<ExerciseTrackingBloc>().add(
-                      StartExerciseEvent(),
-                    ),
-                    onPause: () => context.read<ExerciseTrackingBloc>().add(
-                      PauseExerciseEvent(),
-                    ),
-                    onResume: () => context.read<ExerciseTrackingBloc>().add(
-                      ResumeExerciseEvent(),
-                    ),
-                    onDiscard: () => context.read<ExerciseTrackingBloc>().add(
-                      DiscardExerciseEvent(),
-                    ),
-
-                    onSave: () => context.read<ExerciseTrackingBloc>().add(
-                      SaveExerciseEvent(),
-                    ),
-                  );
-                },
-              ),
-            ),
           ],
         ),
       ),
 
-      floatingActionButtonLocation: .endFloat,
+      floatingActionButtonLocation: .endTop,
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
 
         children: [
-          // FloatingActionButton(
-          //   heroTag: 'followUserButton',
-          //   mini: true,
-          //   backgroundColor: _followUser
-          //       ? context.colors.onPrimary
-          //       : context.colors.surface,
-          //   onPressed: () {
-          //     setState(() {
-          //       _followUser = !_followUser;
-          //     });
+          FloatingActionButton(
+            heroTag: 'triggerSatellite',
+            mini: true,
+            backgroundColor: _satellite
+                ? context.colors.primary
+                : context.colors.surface,
+            onPressed: () {
+              setState(() {
+                _satellite = !_satellite;
+              });
 
-          //     if (_followUser) {
-          //       CustomSnackBar.show(context, message: "Siguiendo recorrido");
-          //       _userCurrentLocation(context);
-          //     } else {
-          //       CustomSnackBar.show(context, message: "Sin seguimiento");
-          //     }
-          //   },
-          //   child: Icon(
-          //     Icons.track_changes,
-          //     color: _followUser
-          //         ? context.colors.onSecondary
-          //         : context.colors.onPrimary,
-          //   ),
-          // ),
+              if (_satellite) {
+                CustomSnackBar.show(context, message: "Mapa satelital");
+                _userCurrentLocation(context);
+              } else {
+                CustomSnackBar.show(context, message: "Mapa básico");
+              }
+            },
+            child: Icon(
+              Icons.layers,
+              color: _satellite
+                  ? context.colors.textPrimary
+                  : context.colors.onPrimary,
+            ),
+          ),
 
-          SizedBox(height: context.spacing.md),
-
+          // SizedBox(height: context.spacing.md),
           FloatingActionButton(
             onPressed: () => _userCurrentLocation(context),
             mini: true,

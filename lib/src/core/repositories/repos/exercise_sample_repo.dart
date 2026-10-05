@@ -5,6 +5,7 @@ abstract class IActivitySampleRepo {
   Future<void> save(ActivitySample data);
   Future<List<IActivitySample>?> getSamples(String activityID);
   Future<void> delete(String activityID);
+  // Future<void> deleteAll(String activityID);
 }
 
 // abstract class IStrenghtCacheRepo {

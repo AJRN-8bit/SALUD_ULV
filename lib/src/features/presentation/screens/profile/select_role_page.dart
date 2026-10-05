@@ -12,7 +12,7 @@ import 'package:salud_ulv_app/src/features/presentation/screens/home/home_admin.
 import 'package:salud_ulv_app/src/features/presentation/screens/home/home_member.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 
 class SelectRolePage extends StatelessWidget {

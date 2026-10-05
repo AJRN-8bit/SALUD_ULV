@@ -91,6 +91,8 @@ class OtpServices implements IOtpRepo{
         debugPrint(response.statusCode.toString());
         throw Exception('Error al enviar código OTP');
       }
+
+      debugPrint('opt sent to $email');
       
     } catch (e) {
       debugPrint(' $e');

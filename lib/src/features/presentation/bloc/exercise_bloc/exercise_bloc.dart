@@ -58,11 +58,30 @@ class ExerciseGetAllBLoc extends Bloc<ExerciseEvent, ExerciseState>{
       try {
         emit(ExerciseLoading());
         final data = await allExerciseUseCase.execute();
-        debugPrint(data.toString());
+        debugPrint('In bloc exercise list: $data');
         emit(ExerciseListLoaded(data));
 
       } catch (e) {
         emit(ExerciseError("Error getting data in bloc"));
+      }
+    });
+  }
+}
+
+class ExerciseSummaryBloc extends Bloc<ExerciseEvent, ExerciseState>{
+  final IGetExerciseSummary getExerciseSummary;
+
+  ExerciseSummaryBloc({required this.getExerciseSummary}) :super(ExerciseInitial()){
+
+    on<ExerciseGetSummary>((event, emit) async {
+      try {
+        emit(ExerciseLoading());
+        final summary = await getExerciseSummary.execute(event.period);
+        debugPrint('in bloc: $summary');
+        emit(ExerciseSummaryLoaded(summary));
+
+      } catch (e) {
+        emit(ExerciseError("Error getting samples data"));
       }
     });
   }

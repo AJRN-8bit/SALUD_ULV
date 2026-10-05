@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:salud_ulv_app/src/core/data/source/network/auth_controller.dart';
+import 'package:salud_ulv_app/src/core/data/source/token/token.dart';
 import 'package:salud_ulv_app/src/core/models/admin.dart';
 import 'package:salud_ulv_app/src/core/models/member.dart';
 import 'package:salud_ulv_app/src/core/models/user.dart';
+import 'package:salud_ulv_app/src/core/usecase/auth/delete_acc_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/auth/logout_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/profile/can_change_roles_verifier.dart';
 import 'package:salud_ulv_app/src/core/usecase/profile/select_role_usecase.dart';
@@ -12,6 +15,7 @@ import 'package:salud_ulv_app/src/core/data/source/token/current_user_service.da
 import 'package:salud_ulv_app/src/core/data/source/token/token_storage.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/member_repo.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/user_repo.dart';
+import 'package:salud_ulv_app/src/core/usecase/profile/set_gender.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_state.dart';
@@ -21,11 +25,15 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/profile_bloc/profil
 import 'package:salud_ulv_app/src/features/presentation/screens/anthropometrics/register_anthro_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/auth/splash_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/profile/select_role_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/fomaters.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/launch_url.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/dialogs.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/popups.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/snackbar.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class ProfileMainPage extends StatelessWidget {
   const ProfileMainPage({super.key});
@@ -57,6 +65,26 @@ class ProfileMainPage extends StatelessWidget {
             ),
           ),
         ),
+
+        BlocProvider(
+          create: (context) => DeleteAccBloc(
+            deleteAccUseCase: DeleteAccUsecase(
+              AuthHTTPController(),
+              UserLocalRepo(),
+              TokenHandler(),
+              TokenStorage(),
+            ),
+          ),
+        ),
+
+        BlocProvider(
+          create: (context) => SetGenderBloc(
+            setGenderUseCase: SetGenderUseCase(
+              MemberLocalRepo(),
+              CurrentUserSession(),
+            ),
+          ),
+        ),
       ],
 
       child: _ProfileMainPage(),
@@ -72,6 +100,9 @@ class _ProfileMainPage extends StatefulWidget {
 }
 
 class _ProfileMainPageState extends State<_ProfileMainPage> {
+  late String? email;
+  String? _selectedGender;
+
   @override
   void initState() {
     super.initState();
@@ -118,7 +149,10 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
             BlocListener<LogoutBloc, AuthState>(
               listener: (context, state) {
                 if (state is Unauthenticated) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SplashPage()));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => SplashPage()),
+                  );
                 }
                 if (state is AuthError) {
                   ScaffoldMessenger.of(
@@ -126,6 +160,34 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
                   ).showSnackBar(SnackBar(content: Text(state.message)));
                 }
               },
+            ),
+
+            BlocListener<DeleteAccBloc, AuthState>(
+              listener: (context, state) {
+                if (state is Unauthenticated) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => SplashPage()),
+                  );
+                }
+                if (state is AuthError) {
+                  CustomSnackBar.showError(context, state.message);
+                }
+              },
+            ),
+
+            BlocListener<SetGenderBloc, ProfileState>(
+              listener: ((context, state) {
+                if (state is ProfileDataSet) {
+                  CustomSnackBar.showSuccess(
+                    context,
+                    "Datos guardado exitosamente",
+                  );
+                }
+                if (state is ProfileError) {
+                  CustomSnackBar.showError(context, state.message);
+                }
+              }),
             ),
 
             // BlocListener<CanChangeRoleBloc, ProfileState>(
@@ -140,7 +202,7 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
 
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(context.spacing.sm),
               child: Center(
                 child: Column(
                   mainAxisAlignment: .center,
@@ -148,14 +210,13 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
                   children: [
                     // const SizedBox(height: 20),
 
-                    Image.asset(
-                      'assets/logos/logoV2.png',
-                      width: 100,
-                      height: 100,
-                    ),
+                    // Image.asset(
+                    //   'assets/logos/logoV2.png',
+                    //   width: 100,
+                    //   height: 100,
+                    // ),
 
-                    const SizedBox(height: 20),
-
+                    // const SizedBox(height: 20),
                     BlocBuilder<GetProfileInfoBloc, ProfileState>(
                       builder: (context, state) {
                         // final spacing = context.spacing;
@@ -164,35 +225,88 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
                           debugPrint(
                             'IU profile user type: ${(state.user is User)}',
                           );
-                          if (state.user is User) {
-                            final member = state.user as User;
+                          if (state.user is Member) {
+                            final member = state.user as Member;
+                            email = member.email!;
                             debugPrint('In the UI profile: $member');
 
-                            return Column(
-                              mainAxisAlignment: .center,
-                              children: [
-                                TextTile(
-                                  label:
-                                      '${member.firstname} ${member.surname} ${member.lastname}',
-                                ),
-                                TextTile(
-                                  label: member.userCode!,
-                                  sideTitle: 'Matricula:',
-                                ),
-                                TextTile(
-                                  label: member.email!,
-                                  sideTitle: 'Correo:',
-                                ),
-                                // TextTile(label: member.userUUID!, sideTitle: 'Matricula:',),
-                                // Text('ID: ${member.userUUID} '),
-                                // Text('Matricula: ${member.userCode} '),
-                                // Text('${member.firstname} ${member.surname} ${member.lastname}'),
-                                // Text('Correo: ${member.email} '),
-                                // Text('Fecha de nacimiento: ${member.dateOfBirth} '),
-                                // Text('Edad: ${member.age} '),
-                                // Text('Género: ${member.gender} '),
-                                // Text('Perfil: ${member.currentRole} '),
-                              ],
+                            return BackgroundContainer(
+                              child: Column(
+                                mainAxisAlignment: .center,
+                                // crossAxisAlignment: .center,
+                                children: [
+                                  InitialsAvatar(
+                                    firstName: member.firstname!,
+                                    lastName: member.surname!,
+                                    size: context.iconSize.xxl,
+                                  ),
+                                  SizedBox(height: context.spacing.md),
+
+                                  CustomTextWidget(
+                                    labelPrefix:
+                                        '${member.firstname} ${member.surname} ${member.lastname}',
+                                    label: '',
+                                    fontSize: context.fontsSize.body,
+                                    // backgroundColor: context.colors.secondary.withAlpha(50),
+                                    // paddingSize: context.spacing.sm,
+                                  ),
+                                  SizedBox(height: context.spacing.sm),
+                                  CustomTextWidget(
+                                    label: member.email!,
+                                    fontSize: context.fontsSize.caption,
+                                    // labelPrefix: 'Correo: ',
+                                    // backgroundColor: context.colors.secondary.withAlpha(50),
+                                    // paddingSize: context.spacing.sm,
+                                  ),
+                                  // SizedBox(height: context.spacing.sm),
+                                  // CustomTextWidget(
+                                  //   label: member.userCode!,
+                                  //   fontSize: context.fontsSize.caption,
+                                  //   labelPrefix: 'Matrícula: ',
+                                  //   // backgroundColor: context.colors.secondary.withAlpha(50),
+                                  //   // paddingSize: context.spacing.sm,
+                                  // ),
+                                  SizedBox(height: context.spacing.lg),
+
+                                  Row(
+                                    mainAxisAlignment: .spaceEvenly,
+                                    crossAxisAlignment: .center,
+                                    mainAxisSize: .max,
+                                    children: [
+                                      // SizedBox(height: context.spacing.sm),
+                                      CustomTextWidget(
+                                        label: member.userCode!,
+                                        fontSize: context.fontsSize.caption,
+                                        labelPrefix: 'Matrícula: ',
+                                        // backgroundColor: context.colors.secondary.withAlpha(50),
+                                        // paddingSize: context.spacing.sm,
+                                      ),
+
+                                      if(member.gender != null) ...[
+                                      CustomTextWidget(
+                                        label: member.gender == 'male'
+                                            ? 'Masculino'
+                                            : 'Femenino',
+                                        fontSize: context.fontsSize.caption,
+                                        labelPrefix: 'Sexo: ',
+                                        // backgroundColor: context.colors.secondary.withAlpha(50),
+                                        // paddingSize: context.spacing.sm,
+                                      ),
+
+                                      ]
+                                    ],
+                                  ),
+                                  SizedBox(height: context.spacing.sm),
+
+                                  CustomTextWidget(
+                                    label: formatDate(member.createdAt!),
+                                    fontSize: context.fontsSize.caption,
+                                    labelPrefix: 'Miembro desde: ',
+                                    // backgroundColor: context.colors.secondary.withAlpha(50),
+                                    // paddingSize: context.spacing.sm,
+                                  ),
+                                ],
+                              ),
                             );
                           } else if (state.user is Admin) {
                             final user = state.user as User;
@@ -232,76 +346,167 @@ class _ProfileMainPageState extends State<_ProfileMainPage> {
                         return const SizedBox();
                       },
                     ),
+                    SizedBox(height: context.spacing.xl),
 
-                    SizedBox(height: context.spacing.md),
+                    // SizedBox(height: context.spacing.md),
 
                     // // SectionTitle(title: 'Datos personales'), // Section
                     // const SizedBox(height: 10),
+                    BackgroundContainer(
+                      child: Column(
+                        // mainAxisAlignment: .sr,
+                        crossAxisAlignment: .stretch,
+                        children: [
+                          CustomTextWidget(
+                            label: "Datos",
+                            fontSize: context.fontsSize.title,
+                            textAlign: .left,
+                          ),
+                          SizedBox(height: context.spacing.sm),
 
-                    // IconTextTile(
-                    //   icon: Icons.person,
-                    //   label: "Antopometricos",
-                    //   onTap: () => Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //       builder: (context) => RegisterAnthroPage(),
-                    //     ),
-                    //   ),
-                    // ),
+                          // IconTextTile(
+                          //   icon: Icons.person_search,
+                          //   label: "Registrar antopometricos",
+                          //   onTap: () => Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) => RegisterAnthroPage(),
+                          //     ),
+                          //   ),
+                          // ),
+                          // SizedBox(height: context.spacing.sm),
+                          IconTextTile(
+                            icon: Icons.person,
+                            label: "Personales",
+                            onTap: () => CustomDialog.show(
+                              context,
+                              title: 'Datos personales',
+                              showCloseButton: true,
+                              // showOkButton: true,
+                              child: Column(
+                                children: [
+                                  IconTextTile(
+                                    icon: Icons.person_3,
+                                    label: "Sexo",
+                                    onTap: () => CustomDialog.show(
+                                      context,
+                                      okLabel: 'Guardar',
+                                      onOkPressed: () => {
+                                        context.read<SetGenderBloc>().add(
+                                          SetGenderEvent(_selectedGender!),
+                                        ),
+                                        context.read<GetProfileInfoBloc>().add(
+                                          GetProfileEvent(),
+                                        ),
+                                      },
+                                      title: 'Elige tu sexo',
+                                      showOkButton: true,
+                                      child: StatefulBuilder(
+                                        builder: (context, setDialogState) {
+                                          return Row(
+                                            children: [
+                                              Expanded(
+                                                child: CustomSelectableCard(
+                                                  value: 'male',
+                                                  groupValue: _selectedGender,
+                                                  onChanged: (value) {
+                                                    setState(
+                                                      () => _selectedGender =
+                                                          value,
+                                                    ); // updates page state
+                                                    setDialogState(
+                                                      () {},
+                                                    ); // tells the dialog to rebuild too
+                                                  },
+                                                  title: 'Masculino',
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: context.spacing.sm,
+                                              ),
+                                              Expanded(
+                                                child: CustomSelectableCard(
+                                                  value: 'female',
+                                                  groupValue: _selectedGender,
+                                                  onChanged: (value) {
+                                                    setState(
+                                                      () => _selectedGender =
+                                                          value,
+                                                    );
+                                                    setDialogState(() {});
+                                                  },
+                                                  title: 'Femenino',
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: context.spacing.lg),
 
-                    // IconTextTile(
-                    //   icon: Icons.person,
-                    //   label: "Datos personales",
-                    //   onTap: () =>
-                    //       CustomSnackBar.show(context, message: "Proximamente"),
-                    // ),
-                    // const SizedBox(height: 20),
+                          CustomTextWidget(
+                            label: "Cuenta",
+                            fontSize: context.fontsSize.title,
+                            textAlign: .left,
+                          ),
+                          SizedBox(height: context.spacing.sm),
 
-                    // SectionTitle(title: 'Cuenta'), // Section
-                    // SizedBox(height: context.spacing.md),
+                          IconTextTile(
+                            icon: Icons.password,
+                            label: "Eliminar cuenta",
+                            onTap: () => CustomAlertDialog.show(
+                              context,
+                              title: "Borrar cuenta",
+                              message:
+                                  "¿Seguro que quiere borrar su cuenta? Todo los datos y progreso de la cuenta $email se perderán",
+                              onTap: () => context.read<DeleteAccBloc>().add(
+                                DeleteAccountEvent(),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: context.spacing.sm),
 
-                    // IconTextTile(
-                    //   icon: Icons.password,
-                    //   label: "Cambiar contraseña",
-                    //   onTap: () =>
-                    //       CustomSnackBar.show(context, message: "Proximamente"),
-                    // ),
+                          IconTextTile(
+                            icon: Icons.logout,
+                            label: "Cerrar sesión",
+                            onTap: () => CustomAlertDialog.show(
+                              context,
+                              title: "Cerrar sesión",
+                              message: "¿Quieres cerrar sesión?",
+                              onTap: () =>
+                                  context.read<LogoutBloc>().add(LogoutEvent()),
+                            ),
+                          ),
+                          SizedBox(height: context.spacing.lg),
 
-                    // BlocBuilder<CanChangeRoleBloc, ProfileState>(
-                    //   builder: (context, state) {
-                    //     if (state is CanChangeRole) {
-                    //       if (state.canChange == true) {
-                    //         debugPrint(
-                    //           'In UI can change roles: ${state.canChange}',
-                    //         );
+                          CustomTextWidget(
+                            label: "Información",
+                            fontSize: context.fontsSize.title,
+                            textAlign: .left,
+                          ),
+                          SizedBox(height: context.spacing.sm),
 
-                    //         return IconTextTile(
-                    //           icon: Icons.person_2,
-                    //           label: "Cambiar rol",
-                    //           onTap: () => Navigator.push(
-                    //             context,
-                    //             MaterialPageRoute(
-                    //               builder: (context) => SelectRolePage(),
-                    //             ),
-                    //           ),
-                    //         );
-                    //       } else {
-                    //         return const SizedBox();
-                    //       }
-                    //     }
-                    //     return const SizedBox();
-                    //   },
-                    // ),
+                          IconTextTile(
+                            icon: Icons.privacy_tip,
+                            label: "Política de Privacidad",
+                            onTap: () => launchUrls(
+                              'https://ajrn-8bit.github.io/privacy_policies/salud-ulv/index.html',
+                            ),
+                          ),
+                          SizedBox(height: context.spacing.sm),
 
-                    IconTextTile(
-                      icon: Icons.logout,
-                      label: "Cerrar sesión",
-                      onTap: () => CustomAlertDialog.show(
-                        context,
-                        title: "Cerrar sesión",
-                        message: "¿Quieres cerrar sesión?",
-                        onTap: () =>
-                            context.read<LogoutBloc>().add(LogoutEvent()),
+                          // IconTextTile(
+                          //   icon: Icons.info,
+                          //   label: "Acerca de la aplicación",
+                          //   onTap: () => {}
+                          // ),
+                        ],
                       ),
                     ),
                   ],

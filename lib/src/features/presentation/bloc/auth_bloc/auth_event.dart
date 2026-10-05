@@ -21,13 +21,13 @@ class RegisterCredentialsEvent extends AuthEvent {
   final String userCode;
   final String email;
   final String password;
-  final String confirmedPw;
+  // final String confirmedPw;
 
   RegisterCredentialsEvent({
     required this.userCode,
     required this.email,
     required this.password,
-    required this.confirmedPw,
+    // required this.confirmedPw,
   });
 }
 
@@ -55,5 +55,7 @@ class LoginEvent extends AuthEvent {
 class CheckAuthEvent extends AuthEvent {}
 
 class CheckRoleEvent extends AuthEvent {}
+
+class DeleteAccountEvent extends AuthEvent{}
 
 class LogoutEvent extends AuthEvent {}

@@ -31,9 +31,10 @@ class GetProfileInfoUsecase implements IGetProfileInfoUsecase{
     debugPrint('Loading user profile: $currentRole');
    
     if(currentRole == UserRole.member){
+      debugPrint('returning member');
       // final member = await memberLocalRepo.getUser(userUUID);
       // final member = await memberLocalRepo.getUser(userUUID);
-      final member = await userLocalRepo.getUser(userUUID);
+      final member = await memberLocalRepo.getUser(userUUID);
       debugPrint('Returning member profile');
       return member;
     }
@@ -44,6 +45,7 @@ class GetProfileInfoUsecase implements IGetProfileInfoUsecase{
       return admin;
     }
     else {
+      debugPrint('returning user');
       final user = await userLocalRepo.getUser(userUUID);
       debugPrint('Returning user profile');
       return user;

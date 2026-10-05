@@ -78,3 +78,19 @@ class GetUserNameBloc extends Bloc<ProfileEvent, ProfileState>{
     });
   }
 }
+
+class SetGenderBloc extends Bloc<ProfileEvent, ProfileState>{
+  final ISetGenderUseCase setGenderUseCase;
+
+  SetGenderBloc({required this.setGenderUseCase}) : super(ProfileInitial()) {
+    on<SetGenderEvent>((event, emit) async {
+      try {
+        emit(ProfileLoading());
+        await setGenderUseCase.execute(event.gender);
+        emit(ProfileDataSet());
+      } catch (e) {
+        emit(ProfileError(e.toString()));
+      }
+    });
+  }
+}

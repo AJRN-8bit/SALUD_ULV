@@ -10,6 +10,8 @@ import 'package:salud_ulv_app/src/core/usecase/auth/send_otp.dart';
 import 'package:salud_ulv_app/src/core/usecase/auth/verify_otp_usecase.dart';
 import 'package:salud_ulv_app/src/core/data/source/network/otp_controller.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/main_wrapper.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/input_validators.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/launch_url.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/input_fields.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/snackbar.dart';
@@ -23,12 +25,12 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_bloc
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_state.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/auth/login_page.dart';
-import 'package:salud_ulv_app/src/features/presentation/screens/auth/registry_info_page.dart';
+// import 'package:salud_ulv_app/src/features/presentation/screens/auth/registry_info_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/home/home_member.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 import 'package:salud_ulv_app/src/testers/auth_repo_tester.dart';
 import 'package:salud_ulv_app/src/testers/check_connection_tester.dart';
 
@@ -117,7 +119,7 @@ class _SignUpPageState extends State<_SignUpPage> {
   final _userCodeController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPwdController = TextEditingController();
+  // final _confirmPwdController = TextEditingController();
 
   final _otpController = TextEditingController();
 
@@ -135,7 +137,7 @@ class _SignUpPageState extends State<_SignUpPage> {
     _userCodeController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPwdController.dispose();
+    // _confirmPwdController.dispose();
 
     _otpController.dispose();
 
@@ -172,7 +174,7 @@ class _SignUpPageState extends State<_SignUpPage> {
           userCode: _userCodeController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
-          confirmedPw: _confirmPwdController.text.trim(),
+          // confirmedPw: _confirmPwdController.text.trim(),
         ),
       );
       context.read<SendOTPBloc>().add(
@@ -216,18 +218,20 @@ class _SignUpPageState extends State<_SignUpPage> {
     await Future.delayed(const Duration(seconds: 1));
 
     // ignore: use_build_context_synchronously
-    context.read<LoginBloc>().add(LoginEvent(input: _emailController.text.trim(), password: password));
+    context.read<LoginBloc>().add(
+      LoginEvent(input: _emailController.text.trim(), password: password),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return GradientBackground(
-      // colors: [
-      //   context.colors.onSecondary,
-      //   context.colors.secondary,
-      //   context.colors.primary,
-      // ],
-      // stops: [0 , 0.5, 1],
+      colors: [
+        context.colors.onSecondary,
+        context.colors.secondary,
+        // context.colors.primary,
+      ],
+      stops: [0 , 0.5],
 
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -239,13 +243,11 @@ class _SignUpPageState extends State<_SignUpPage> {
             listeners: [
               BlocListener<RegisterUserBloc, AuthState>(
                 listener: (context, state) {
-
                   if (state is AuthError) {
                     CustomSnackBar.showError(context, state.message);
                   }
                 },
               ),
-
 
               BlocListener<LoginBloc, AuthState>(
                 listener: (context, state) {
@@ -262,7 +264,6 @@ class _SignUpPageState extends State<_SignUpPage> {
                   }
                 },
               ),
-
 
               BlocListener<RegisterCredentialsBloc, AuthState>(
                 listener: (context, state) {
@@ -327,18 +328,32 @@ class _SignUpPageState extends State<_SignUpPage> {
               child: Padding(
                 padding: EdgeInsets.all(context.spacing.sm),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: .start,
+                  mainAxisSize: .min,
+
                   children: [
+                    SizedBox(height: context.spacing.xxl),
+
+                    CustomTextWidget(
+                      label: "¡Unete a Salud ULV!",
+                      color: context.colors.textSecondary,
+                      fontSize: context.fontsSize.display,
+                      fontWeight: FontWeight.w700,
+                    ),
+
+                    SizedBox(height: context.spacing.sm),
+
                     CustomTextWidget(
                       label: "Crea una cuenta",
-                      fontSize: context.fontsSize.display,
-                      fontWeight: FontWeight.w900,
+                      color: context.colors.textSecondary,
+                      fontSize: context.fontsSize.body,
+                      // fontWeight: FontWeight.w700,
                     ),
 
                     SizedBox(height: context.spacing.md),
 
                     BackgroundContainer(
-                      pHeight: 600,
+                      // pHeight: 600,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -380,7 +395,7 @@ class _SignUpPageState extends State<_SignUpPage> {
                                           prefixIcon: FontAwesomeIcons.hashtag,
                                           validator: (v) => inputValidator(
                                             v,
-                                            "Porfavor ingresa tu matrícula ULV",
+                                            "Ingresa tu matrícula ULV",
                                           ),
                                           // errorText: userCodeError,
                                         ),
@@ -395,7 +410,7 @@ class _SignUpPageState extends State<_SignUpPage> {
                                           prefixIcon: FontAwesomeIcons.envelope,
                                           validator: (v) => inputValidator(
                                             v,
-                                            "Porfavor ingresa un correo electrónico",
+                                            "Ingresa un correo electrónico",
                                           ),
                                           // errorText: emailError,
                                         ),
@@ -411,23 +426,26 @@ class _SignUpPageState extends State<_SignUpPage> {
                                           ),
                                         ),
 
-                                        SizedBox(height: context.spacing.md),
+                                        SizedBox(height: context.spacing.sm,),
+                                        PasswordRequirementsChecklist(controller: _passwordController),
 
-                                        CustomPasswordField(
-                                          label: "Confirmar contraseña",
-                                          controller: _confirmPwdController,
-                                          validator: (v) {
-                                            if (v == null || v.isEmpty) {
-                                              return 'Porfavor confirma tu contraseña';
-                                            }
+                                        // SizedBox(height: context.spacing.md),
 
-                                            if (v != _passwordController.text) {
-                                              return 'Las contraseñas no son iguales';
-                                            }
+                                        // CustomPasswordField(
+                                        //   label: "Confirmar contraseña",
+                                        //   controller: _confirmPwdController,
+                                        //   validator: (v) {
+                                        //     if (v == null || v.isEmpty) {
+                                        //       return 'Porfavor confirma tu contraseña';
+                                        //     }
 
-                                            return null;
-                                          },
-                                        ),
+                                        //     if (v != _passwordController.text) {
+                                        //       return 'Las contraseñas no son iguales';
+                                        //     }
+
+                                        //     return null;
+                                        //   },
+                                        // ),
                                       ],
                                     );
                                   },
@@ -448,37 +466,44 @@ class _SignUpPageState extends State<_SignUpPage> {
                                     }
 
                                     return Column(
+                                      // mainAxisAlignment: .start,
+                                      // crossAxisAlignment: .start,
+                                      mainAxisSize: .min,
+                                    
                                       children: [
                                         CustomTextWidget(
                                           label:
-                                              "Ingresa el código de verificación enviado al correo ${_emailController.text}.",
-                                          fontSize: context.fontsSize.body,
+                                              "Hemos enviado un código de verificación al correo ${_emailController.text}.",
+                                          fontSize: context.fontsSize.caption,
+                                          textAlign: .left,
                                         ),
-
+                                    
                                         SizedBox(height: context.spacing.md),
-
+                                    
                                         CustomTextWidget(
                                           label:
-                                              "Si no encuentra el código, revise la sección de Spam",
+                                              "Si no encuentra el código, revise en la sección de Spam",
                                           fontSize: context.fontsSize.caption,
+                                          textAlign: .left,
                                         ),
-
+                                    
                                         SizedBox(height: context.spacing.lg),
-
-                                        CustomTextFormField(
-                                          label: 'Código',
-                                          controller: _otpController,
-                                          prefixIcon: FontAwesomeIcons.key,
-                                          keyboardType: TextInputType.number,
-                                          validator: (v) => inputValidator(
-                                            v,
-                                            'Ingresa el código enviado',
-                                          ),
-                                          // errorText: otpError,
-                                        ),
-
+                                    
+                                        // CustomTextFormField(
+                                        //   label: 'Código',
+                                        //   controller: _otpController,
+                                        //   prefixIcon: FontAwesomeIcons.key,
+                                        //   keyboardType: TextInputType.number,
+                                        //   validator: (v) => inputValidator(
+                                        //     v,
+                                        //     'Ingresa el código enviado',
+                                        //   ),
+                                        //   // errorText: otpError,
+                                        // ),
+                                        OtpInput(length: 4 ,controller: _otpController,),
+                                    
                                         SizedBox(height: context.spacing.md),
-
+                                    
                                         GestureDetector(
                                           onTap: () {
                                             context.read<SendOTPBloc>().add(
@@ -491,6 +516,7 @@ class _SignUpPageState extends State<_SignUpPage> {
                                             label: "Reenviar código",
                                             fontSize: context.fontsSize.caption,
                                             color: context.colors.onSecondary,
+                                            textAlign: .right,
                                           ),
                                         ),
                                       ],
@@ -556,39 +582,68 @@ class _SignUpPageState extends State<_SignUpPage> {
                                         SizedBox(height: context.spacing.xxl),
 
                                         CustomTextWidget(
-                                          label: "Ingresa tu ocupación en ULV",
+                                          label: "Ocupación en ULV",
                                           fontSize: context.fontsSize.body,
+                                          fontWeight: .w700,
                                           // fontWeight: FontWeight.w700,
                                         ),
                                         SizedBox(height: context.spacing.md),
-                                        CustomTextWidget(
-                                          label:
-                                              "Después de enviar no podrás cambiar tu elección",
-                                          fontSize: context.fontsSize.caption,
-                                        ),
-                                        SizedBox(height: context.spacing.lg),
 
                                         RadioGroup<int>(
                                           groupValue: _typeID,
                                           onChanged: (int? value) =>
                                               setState(() => _typeID = value!),
 
-                                          child: Row(
-                                            mainAxisAlignment: .center,
-                                            children: const [
-                                              Radio<int>(value: 1),
-                                              CustomTextWidget(
-                                                label: "Empleado",
-                                                fontSize: 16,
+                                          child: StatefulBuilder(
+                                        builder: (context, setDialogState) {
+                                          return Row(
+                                            children: [
+                                              Expanded(
+                                                child: CustomSelectableCard(
+                                                  value: 1,
+                                                  groupValue: _typeID,
+                                                  onChanged: (value) {
+                                                    setState(
+                                                      () => _typeID =
+                                                          value,
+                                                    ); // updates page state
+                                                    setDialogState(
+                                                      () {},
+                                                    ); // tells the dialog to rebuild too
+                                                  },
+                                                  title: 'Empleado',
+                                                  info: 'Podrás unirte a tu área de trabajo y vicerrectoria',
+                                                ),
                                               ),
-
-                                              Radio<int>(value: 2),
-                                              CustomTextWidget(
-                                                label: "Estudiante",
-                                                fontSize: 16,
+                                              SizedBox(
+                                                width: context.spacing.sm,
+                                              ),
+                                              Expanded(
+                                                child: CustomSelectableCard(
+                                                  value: 2,
+                                                  groupValue: _typeID,
+                                                  onChanged: (value) {
+                                                    setState(
+                                                      () => _typeID =
+                                                          value,
+                                                    );
+                                                    setDialogState(() {});
+                                                  },
+                                                  title: 'Estudiante',
+                                                  info: 'Podrás unirte a tu facultad o materia específica',
+                                                ),
                                               ),
                                             ],
-                                          ),
+                                          );
+                                        },
+                                      ),
+                                        ),
+
+                                        SizedBox(height: context.spacing.md),
+                                        CustomTextWidget(
+                                          label:
+                                              "No podrás cambiar este valor después",
+                                          fontSize: context.fontsSize.details,
                                         ),
                                       ],
                                     );
@@ -599,39 +654,66 @@ class _SignUpPageState extends State<_SignUpPage> {
                               _ => const SizedBox.shrink(),
                             },
                           ),
+
+                          SizedBox(height: context.spacing.lg),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CustomTextWidget(
+                                label: "¿Ya tienes una cuenta?",
+                                fontSize: context.fontsSize.caption,
+                              ),
+
+                              SizedBox(width: context.spacing.xs),
+
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SignInPage(),
+                                  ),
+                                ),
+                                child: CustomTextWidget(
+                                  label: "Inicia sesión",
+                                  fontSize: context.fontsSize.caption,
+                                  color: context.colors.success,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: context.spacing.md),
+
+                          Column(
+                            mainAxisAlignment: .center,
+                            children: [
+                              CustomTextWidget(
+                                label:
+                                    "Al crear una cuenta, esta aceptando nuestra ",
+                                fontSize: context.fontsSize.details,
+                              ),
+                              SizedBox(width: context.spacing.xs),
+
+                              GestureDetector(
+                                onTap: () => launchUrls(
+                                  'https://ajrn-8bit.github.io/privacy_policies/salud-ulv/index.html',
+                                ),
+
+                                child: CustomTextWidget(
+                                  label: "Politica de Privacidad.",
+                                  fontSize: context.fontsSize.details,
+                                  color: context.colors.textPrimary,
+                                  fontWeight: .w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
 
-                    SizedBox(height: context.spacing.xl),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CustomTextWidget(
-                          label: "¿Ya tienes una cuenta?",
-                          fontSize: context.fontsSize.caption,
-                        ),
-
-                        SizedBox(width: context.spacing.xs),
-
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SignInPage(),
-                            ),
-                          ),
-                          child: CustomTextWidget(
-                            label: "Inicia sesión",
-                            fontSize: context.fontsSize.caption,
-                            color: context.colors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: context.spacing.md),
+                    // SizedBox(height: context.spacing.xl),
                   ],
                 ),
               ),

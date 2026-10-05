@@ -13,6 +13,10 @@ class VideoBackgroundContainer extends StatefulWidget {
     this.isNetwork = false,
     this.loop = true,
     this.muted = true,
+    this.begin = Alignment.topCenter,
+    this.end = Alignment.bottomCenter,
+    this.colors,
+    this.stops,
   });
 
   final String videoAsset;
@@ -22,6 +26,11 @@ class VideoBackgroundContainer extends StatefulWidget {
   final bool isNetwork;
   final bool loop;
   final bool muted;
+  final Alignment begin;
+  final Alignment end;
+  final List<Color>? colors;
+  final List<double>? stops;
+
 
   @override
   State<VideoBackgroundContainer> createState() =>
@@ -72,7 +81,18 @@ class _VideoBackgroundContainerState extends State<VideoBackgroundContainer> {
 
         // 2. Overlay oscuro transparente
         Container(
-          color: widget.overlayColor.withOpacity(widget.overlayOpacity),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: widget.begin,
+              end: widget.end,
+              colors: widget.colors ?? [
+              Colors.transparent,
+              Colors.transparent,
+              Colors.transparent,
+            ],
+            stops: widget.stops ?? [0, 0.5, 1]
+            ),
+          ),
         ),
 
         // 3. Tus widgets encima

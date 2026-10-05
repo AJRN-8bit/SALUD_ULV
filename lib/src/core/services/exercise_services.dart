@@ -88,6 +88,24 @@ double avgCalculator(List<num> values) {
   return (sum / values.length);
 }
 
+double calculateCaloriesBurned(Duration time, int met, double bodyWeight) {
+  // Time needs to be in minutes for the standard MET formula
+  final double minutes = time.inSeconds / 60.0;
+  
+  final double calories = (minutes * met * bodyWeight) / 200;
+  
+  return calories;
+}
+
+double calculateStepsPerMinute(int steps, Duration time) {
+  final double minutes = time.inSeconds / 60.0;
+  
+  if (minutes <= 0) return 0.0;
+  
+  final double stepsPerMinute = steps / minutes;
+  
+  return stepsPerMinute;
+}
 
 
 double valueByTime(List<num> values, int timeInSeconds) {

@@ -6,7 +6,7 @@ import 'package:salud_ulv_app/src/core/models/user.dart';
 
 
 abstract class ISignUpCredentialsUseCase{
-  Future<bool> execute(String userCode, String email, String password, String confirmedPw);
+  Future<bool> execute(String userCode, String email, String password);
 }
 
 abstract class IRegisterMemberUseCase{
@@ -46,5 +46,5 @@ abstract class ILogoutUseCase{
 
 
 abstract class IDeleteAccUseCase{
-  Future<void> execute(String email);
+  Future<void> execute();
 }

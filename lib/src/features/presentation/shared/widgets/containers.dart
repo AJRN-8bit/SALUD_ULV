@@ -56,6 +56,7 @@ class BackgroundContainer extends StatelessWidget {
     this.backgroundColor,
     this.pHeight,
     this.pWidth,
+    this.internalPadding,
   });
 
   final double? pHeight;
@@ -63,6 +64,7 @@ class BackgroundContainer extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
   final Color? color;
+  final double? internalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +73,10 @@ class BackgroundContainer extends StatelessWidget {
 
     return Container(
       constraints: BoxConstraints(
-        minHeight: pHeight ?? 325,
+        minHeight: pHeight ?? 250,
       ),
       width: pWidth ?? double.infinity,
-      padding: EdgeInsets.all(spacing.lg),
+      padding: EdgeInsets.all(internalPadding ?? spacing.md),
       decoration: BoxDecoration(
         color: color ?? colors.surface,
         borderRadius: BorderRadius.circular(spacing.radiusLg),

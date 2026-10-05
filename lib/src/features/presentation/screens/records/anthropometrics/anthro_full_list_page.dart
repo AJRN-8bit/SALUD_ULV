@@ -6,6 +6,7 @@ import 'package:salud_ulv_app/src/core/data/source/local/sqflite/anthro_repo.dar
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_bloc.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_state.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/listviews.dart';
 
@@ -47,50 +48,57 @@ class _AllAnthroRecordsPageState extends State<_AllAnthroRecordsPage>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white.withAlpha(250),
-      body: BlocListener<GetAnthroAllBloc, AnthroState>(
-            listener: (context, state) {
+      backgroundColor: context.colors.background,
+      appBar: AppBar(
+        backgroundColor: context.colors.background,
+        // toolbarHeight: 80,
+        elevation: 0,
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back_ios_new, color: context.colors.primary),
+        //   onPressed: () => Navigator.pop(context),
+        // ),
+        title: Text(
+          'Lista de caminatas',
+          style: TextStyle(color: context.colors.textPrimary),
+        ),
+        centerTitle: true,
+      ),
 
-              if(state is AnthroError){
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)));
-              }
-            },
 
-          child: SafeArea(
-            child: SingleChildScrollView(
-              key: _formKey,
-              scrollDirection: .vertical,
-              child: Center(
-                child: Column(
-                  children: [                       
-                          
-                    BlocBuilder<GetAnthroAllBloc, AnthroState>(
-                      builder: (context, state) {
-                        if(state is AnthroLoading){
-                          return const CircularProgressIndicator();
-                        }
-                
-                        if(state is AnthroListLoaded){
-                          if(state.data == null || state.data!.isEmpty) {
-                            return const SizedBox(child: Text("No data"),);
-                            
-                          }
-                          // return AnthropRecordsListView(data: state.data!);
-                          return SizedBox();
-                        }
-                
-                        return const SizedBox();
-                      }),
-                          
-                      const SizedBox(height: 40,),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          key: _formKey,
+          scrollDirection: .vertical,
+          child: Center(
+            child: Column(
+              children: [                       
+                      
+                BlocBuilder<GetAnthroAllBloc, AnthroState>(
+                  builder: (context, state) {
+                    if(state is AnthroLoading){
+                      return const CircularProgressIndicator();
+                    }
             
-                  ],
-                ),
-              ),
+                    if(state is AnthroListLoaded){
+                      if(state.data == null || state.data!.isEmpty) {
+                        return const SizedBox(child: Text("No data"),);
+                        
+                      }
+                      // return AnthropRecordsListView(data: state.data!);
+                      return SizedBox();
+                    }
+            
+                    return const SizedBox();
+                  }),
+                      
+                  const SizedBox(height: 40,),
+        
+              ],
             ),
           ),
-        )
+        ),
+      )
       );
   }
 }

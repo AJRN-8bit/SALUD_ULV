@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/input_fields.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class CustomStepper extends StatelessWidget {
   const CustomStepper({
@@ -13,6 +14,9 @@ class CustomStepper extends StatelessWidget {
     required this.onCancel,
     this.isLoading = false,
     this.continueLabel,
+    this.titleSize,
+    this.mainColor,
+    this.btnTextColor
   });
 
   final int currentStep;
@@ -22,20 +26,24 @@ class CustomStepper extends StatelessWidget {
   final VoidCallback? onCancel;
   final bool isLoading;
   final String? continueLabel;
+  final double? titleSize;
+  final Color? mainColor;
+  final Color? btnTextColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final spacing = context.spacing;
     final fontSize = context.fonts;
+    final buttonTextColor = btnTextColor ?? colors.textPrimary;
 
     final isLastStep = currentStep == stepTitles.length - 1;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CustomStepIndicator(currentStep: currentStep, stepTitles: stepTitles),
-        SizedBox(height: spacing.lg),
+        CustomStepIndicator(currentStep: currentStep, stepTitles: stepTitles, titleSize: titleSize,),
+        SizedBox(height: spacing.md),
 
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
@@ -60,8 +68,8 @@ class CustomStepper extends StatelessWidget {
                   child: Text(
                     'Atrás',
                     style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: fontSize.body,
+                      color: buttonTextColor,
+                      fontSize: fontSize.caption,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -76,7 +84,7 @@ class CustomStepper extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: isLoading ? null : onContinue,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primary,
+                    backgroundColor: mainColor ?? colors.tertiary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(spacing.radiusLg),
@@ -88,18 +96,12 @@ class CustomStepper extends StatelessWidget {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: colors.onPrimary,
+                            color: colors.tertiary,
                           ),
                         )
-                      : Text(
-                          continueLabel ??
-                              (isLastStep ? 'Enviar' : 'Siguiente'),
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: fontSize.body,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      : 
+                        CustomTextWidget(label: continueLabel ??
+                              (isLastStep ? 'Enviar' : 'Siguiente'), fontSize: context.fontsSize.caption, fontWeight: .w700, color: colors.textSecondary,),
                 ),
               ),
             ),
@@ -115,10 +117,12 @@ class CustomStepIndicator extends StatelessWidget {
     super.key,
     required this.currentStep,
     required this.stepTitles,
+    required this.titleSize,
   });
 
   final int currentStep;
   final List<String> stepTitles;
+  final double? titleSize;
 
   @override
   Widget build(BuildContext context) {
@@ -139,16 +143,16 @@ class CustomStepIndicator extends StatelessWidget {
                 children: [
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
-                    width: 35,
-                    height: 35,
+                    width: 25,
+                    height: 25,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isCompleted || isActive
-                          ? colors.primary
-                          : colors.surface,
+                          ? colors.onSecondary
+                          : colors.primary,
                       border: Border.all(
                         color: isCompleted || isActive
-                            ? colors.primary
+                            ? colors.onSecondary
                             : colors.border,
                         width: 1.5,
                       ),
@@ -160,10 +164,10 @@ class CustomStepIndicator extends StatelessWidget {
                               '${index + 1}',
                               style: TextStyle(
                                 color: isActive
-                                    ? colors.onPrimary
+                                    ? colors.textSecondary 
                                     : colors.textPrimary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: fontSize.caption,
+                                fontSize: titleSize ?? fontSize.details,
                               ),
                             ),
                     ),
@@ -175,7 +179,7 @@ class CustomStepIndicator extends StatelessWidget {
                     width: 90,
                     child: CustomTextWidget(
                       label: stepTitles[index],
-                      fontSize: fontSize.caption,
+                      fontSize: titleSize ?? fontSize.details,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                       color: isActive ? colors.textPrimary : colors.onSecondary,
                       textAlign: TextAlign.center,

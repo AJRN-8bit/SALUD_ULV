@@ -7,6 +7,7 @@ abstract class IAnthropometricLocalRepo {
   Future<List<Map<String, dynamic>>?> getByField(String userUUID, String field);
   Future<void> markAsSynced(String anthropometricID);
   Future<List<Anthropometrics>?> getUnsynced(String userUUID);
+  // Future<void> deleteAll(String userUUID);
 }
 
 

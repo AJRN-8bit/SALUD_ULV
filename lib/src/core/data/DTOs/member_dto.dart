@@ -4,7 +4,7 @@ import 'package:salud_ulv_app/src/core/data/DTOs/user_dto.dart';
 class MemberDTO extends UserDTO {
   final String? groupID;
   final DateTime? dateOfBirth;
-  final String gender;
+  final String? gender;
   final String? typeID;
   final int? age;
 
@@ -20,7 +20,7 @@ class MemberDTO extends UserDTO {
     super.roles,
     super.createdAt,
     this.dateOfBirth,
-    required this.gender,
+    this.gender,
     this.typeID,
     this.age,
   });

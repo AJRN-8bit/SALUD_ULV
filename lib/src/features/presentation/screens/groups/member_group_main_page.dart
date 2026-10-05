@@ -17,7 +17,7 @@ import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dar
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/listviews.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/snackbar.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class MemberGroupPage extends StatelessWidget {
   const MemberGroupPage({super.key});

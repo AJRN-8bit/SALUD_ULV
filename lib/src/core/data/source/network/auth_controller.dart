@@ -17,7 +17,6 @@ class AuthHTTPController implements IAuthExtRepo {
     try {
       final baseUrl = dotenv.env['API_URL'];
 
-
       final request = await http.post(
         Uri.parse('$baseUrl/auth/user/exists'),
           headers: {
@@ -59,6 +58,8 @@ class AuthHTTPController implements IAuthExtRepo {
       final baseUrl = dotenv.env['API_URL'];
       final userData = UserDTO.fromDomain(user).toJson();
       // userData["password"] = password;
+      debugPrint(baseUrl);
+  
       final body = jsonEncode({
           "user": userData,
           "password": password,
@@ -111,6 +112,7 @@ class AuthHTTPController implements IAuthExtRepo {
       final baseUrl = dotenv.env['API_URL'];
 
       debugPrint('in http login: $input, $password ///////////////');
+      debugPrint(baseUrl);
 
       final request = await http.post(
         Uri.parse('$baseUrl/auth/login'),
@@ -211,8 +213,10 @@ class AuthHTTPController implements IAuthExtRepo {
   @override
   Future<void> deleteAccount(String email) async {
     try {
-      final response = await http.post(
-        Uri.parse('http://192.168.1.3:3030/auth/deleteAcc'),
+
+      final baseUrl = dotenv.env['API_URL'];
+      final response = await http.delete(
+        Uri.parse('$baseUrl/auth/deleteAcc'),
         headers: {
             'Content-Type': 'application/json', 
           },
@@ -227,6 +231,8 @@ class AuthHTTPController implements IAuthExtRepo {
           debugPrint(response.statusCode.toString());
           throw Exception('Error al borrar usuario');
         }
+
+        return;
 
     } catch (e) {
       debugPrint(' $e');

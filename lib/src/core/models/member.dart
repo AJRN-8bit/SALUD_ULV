@@ -6,7 +6,7 @@ class Member extends User{
   final DateTime? dateOfBirth;
   final int? age;
   //final int tier
-  final String gender;
+  final String? gender;
   // final String? occupation;
 
   Member({
@@ -21,7 +21,7 @@ class Member extends User{
     super.createdAt,
 
     this.dateOfBirth,
-    required this.gender,
+    this.gender,
     this.age,
 
     // this.groupID,

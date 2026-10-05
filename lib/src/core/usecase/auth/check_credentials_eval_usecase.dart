@@ -14,7 +14,7 @@ class SignUpCredentialsUsecase implements ISignUpCredentialsUseCase{
   const SignUpCredentialsUsecase(this.authRepo, this.checkConnectionRepo);
 
   @override
-  Future<bool> execute(String userCode, String email, String password, String confirmedPw) async {
+  Future<bool> execute(String userCode, String email, String password) async {
 
     final hasConnection = await checkConnectionRepo.hasConnection();
     if(!hasConnection) throw Exception("No internet");
@@ -37,9 +37,9 @@ class SignUpCredentialsUsecase implements ISignUpCredentialsUseCase{
       throw ArgumentError('Ingresar correcto formato de contraseña');
     }
 
-    if(password != confirmedPw){
-      throw ArgumentError('Contraseñas no coinciden');
-    }
+    // if(password != confirmedPw){
+    //   throw ArgumentError('Contraseñas no coinciden');
+    // }
 
     final userExists = await authRepo.userExists(userCode, email);
     if(userExists){

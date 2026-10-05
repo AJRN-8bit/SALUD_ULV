@@ -15,8 +15,8 @@ class RegisterCredentialsBloc extends Bloc<AuthEvent, AuthState> {
         final isCorrect = await signUpCredentialsUseCase.execute(
           event.userCode,
           event.email,
-          event.password,
-          event.confirmedPw,
+          event.password
+          // event.confirmedPw,
         );
         emit(ContinueAuth(isCorrect));
       } catch (e) {
@@ -26,12 +26,10 @@ class RegisterCredentialsBloc extends Bloc<AuthEvent, AuthState> {
   }
 }
 
-
 class SendOTPBloc extends Bloc<AuthEvent, AuthState> {
   final ISendOTPUseCase sendOTPUseCase;
 
-  SendOTPBloc({required this.sendOTPUseCase})
-    : super(AuthInitial()) {
+  SendOTPBloc({required this.sendOTPUseCase}) : super(AuthInitial()) {
     on<SendOTPEvent>((event, emit) async {
       try {
         emit(AuthLoading());
@@ -44,16 +42,17 @@ class SendOTPBloc extends Bloc<AuthEvent, AuthState> {
   }
 }
 
-
 class CheckOTPBloc extends Bloc<AuthEvent, AuthState> {
   final IVerifyOTPUseCase verifyOTPUseCase;
 
-  CheckOTPBloc({required this.verifyOTPUseCase})
-    : super(AuthInitial()) {
+  CheckOTPBloc({required this.verifyOTPUseCase}) : super(AuthInitial()) {
     on<CheckOPTEvent>((event, emit) async {
       try {
         emit(AuthLoading());
-        final isVerified = await verifyOTPUseCase.execute(event.otp, event.email);
+        final isVerified = await verifyOTPUseCase.execute(
+          event.otp,
+          event.email,
+        );
         emit(ContinueAuth(isVerified!));
       } catch (e) {
         emit(AuthError(e.toString()));
@@ -61,8 +60,6 @@ class CheckOTPBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 }
-
-
 
 class RegisterUserBloc extends Bloc<AuthEvent, AuthState> {
   final IRegisterMemberUseCase registryUsecase;
@@ -140,12 +137,18 @@ class CheckRoleBLoc extends Bloc<AuthEvent, AuthState> {
 
   CheckRoleBLoc({required this.checkAuthUseCase}) : super(AuthInitial()) {
     on<CheckRoleEvent>((event, emit) async {
-      final role = await checkAuthUseCase.execute();
-      debugPrint("Role in bloc: ${role.toString()} [--------------------------DEBUG--------------------------]");
-      if (role == null) {
-        emit(Unauthenticated());
-      } else {
-        emit(CheckAuthenticated(role));
+      try {
+        final role = await checkAuthUseCase.execute();
+        debugPrint(
+          "Role in bloc: ${role.toString()} [--------------------------DEBUG--------------------------]",
+        );
+        if (role == null) {
+          emit(Unauthenticated());
+        } else {
+          emit(CheckAuthenticated(role));
+        }
+      } catch (e) {
+        emit(AuthError(e.toString()));
       }
     });
   }
@@ -156,11 +159,32 @@ class CheckAuthBloc extends Bloc<AuthEvent, AuthState> {
 
   CheckAuthBloc({required this.checkAuthUseCase}) : super(AuthInitial()) {
     on<CheckAuthEvent>((event, emit) async {
-      final role = await checkAuthUseCase.execute();
-      if (role == null) {
+      try {
+        final role = await checkAuthUseCase.execute();
+        if (role == null) {
+          emit(Unauthenticated());
+        } else {
+          emit(Authenticated());
+        }
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
+  }
+}
+
+class DeleteAccBloc extends Bloc<AuthEvent, AuthState> {
+  final IDeleteAccUseCase deleteAccUseCase;
+
+  DeleteAccBloc({required this.deleteAccUseCase}) : super(AuthInitial()) {
+    on<DeleteAccountEvent>((event, emit) async {
+      try {
+        emit(AuthLoading());
+        await deleteAccUseCase.execute();
         emit(Unauthenticated());
-      } else {
-        emit(Authenticated());
+
+      } catch (e) {
+        emit(AuthError(e.toString()));
       }
     });
   }

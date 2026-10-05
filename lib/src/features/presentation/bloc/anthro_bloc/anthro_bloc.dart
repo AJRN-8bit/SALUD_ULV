@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:salud_ulv_app/src/core/repositories/use-cases/anthropometric_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_bycode_admin_usecase.dart';
@@ -87,6 +88,32 @@ class GetAnthroByFieldBloc extends Bloc<AnthroEvent, AnthroState> {
     }
   }
 }
+
+
+
+class EvalRecentAnthroBloc extends Bloc<AnthroEvent, AnthroState> {
+  final ICheckRecentAnthroUseCase checkRecentAnthroUseCase;
+
+  EvalRecentAnthroBloc({required this.checkRecentAnthroUseCase}) : super(AnthroInitial()) {
+    on<AnthroEvaluationEvent>((event, emit) async {
+      try {
+        emit(AnthroLoading());
+        final (anthroRanges, anthroAlerts) = await checkRecentAnthroUseCase.execute();
+        debugPrint('ranges');
+        debugPrint(anthroRanges.toString());
+        debugPrint('alerts');
+                                        debugPrint(anthroAlerts.toString());
+        emit(AnthroEvaluated(anthroRanges, anthroAlerts));
+
+      } catch (e) {
+        debugPrint('${e.runtimeType}: $e');
+        emit(AnthroError("Couldn't not evaluate data"));
+      }
+    });
+  }
+}
+
+
 
 class SendAnhroBloc extends Bloc<AnthroEvent, AnthroState> {
   // Checks if there is unsynced data with the API

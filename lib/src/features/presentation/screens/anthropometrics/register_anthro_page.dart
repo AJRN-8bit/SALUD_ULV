@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:flutter_ruler_picker/flutter_ruler_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/save_usecase.dart';
 import 'package:salud_ulv_app/src/core/data/DTOs/anthro_dto.dart';
@@ -10,12 +11,15 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_state.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/home/home_member.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/main_wrapper.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/input_validators.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/input_fields.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/ruler_picker.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/snackbar.dart';
 
 class RegisterAnthroPage extends StatelessWidget {
   const RegisterAnthroPage({super.key});
@@ -43,14 +47,16 @@ class _RegisterAnthroPage extends StatefulWidget {
 }
 
 class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
+  // late final RulerPickerController _heightController;
+
   final _formKey = GlobalKey<FormState>();
-  final _heightController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _smmController = TextEditingController();
-  final _fatMassController = TextEditingController();
-  final _bodyFatPercentController = TextEditingController();
-  final _bmiController = TextEditingController();
-  final _whrController = TextEditingController();
+  final _heightController = RulerPickerController(min: 150, max: 200, initialValue: 170);
+  final _weightController = RulerPickerController(min: 40, max: 150, initialValue: 70);
+  final _smmController = RulerPickerController(min: 20, max: 50, initialValue: 25);
+  final _fatMassController = RulerPickerController(min: 0, max: 15, initialValue: 7);
+  final _bodyFatPercentController = RulerPickerController(min: 5, max: 40, initialValue: 22);
+  final _bmiController = RulerPickerController(min: 15, max: 40, initialValue: 22);
+  final _whrController = RulerPickerController(min: 0.5, max: 1.5, initialValue: 1);
 
   @override
   void dispose() {
@@ -69,14 +75,14 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
       context.read<SaveAnthroBloc>().add(
         SaveAnthroEvent(
           AnthropometricsDTO(
-            height: double.tryParse(_heightController.text.trim()) ?? 0.0,
-            weight: double.tryParse(_weightController.text.trim()) ?? 0.0,
-            smm: double.tryParse(_smmController.text.trim()) ?? 0.0,
-            fatMass: double.tryParse(_fatMassController.text.trim()) ?? 0.0,
+            height: _heightController.value.toDouble(),
+            weight:  _weightController.value.toDouble(),
+            smm:  _smmController.value.toDouble(),
+            fatMass:  _fatMassController.value.toDouble(),
             bodyFatPercentage:
-                double.tryParse(_bodyFatPercentController.text.trim()) ?? 0.0,
-            bmi: double.tryParse(_bmiController.text.trim()) ?? 0.0,
-            whr: double.tryParse(_whrController.text.trim()) ?? 0.0,
+                 _bodyFatPercentController.value.toDouble(),
+            bmi:  _bmiController.value.toDouble(),
+            whr:  _whrController.value.toDouble(),
           ).toDomain(),
         ),
       );
@@ -90,31 +96,30 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
       // stops: [0, 0.35, 1],
 
       child: Scaffold(
-        appBar: AppBar(backgroundColor: context.colors.background, elevation: 0),
-      
+        appBar: AppBar(
+          backgroundColor: context.colors.background,
+          elevation: 0,
+        ),
+
         backgroundColor: Colors.transparent,
         body: SafeArea(
           // top: true,
           bottom: true,
-      
+
           child: BlocListener<SaveAnthroBloc, AnthroState>(
             listener: (context, state) {
               if (state is AnthroSaved) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Registro guardado')),
-                );
+                CustomSnackBar.showSuccess(context, 'Registro guardado');
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => MainWrapper()),
                 );
               }
               if (state is AnthroError) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(state.message)));
+                CustomSnackBar.showError(context, state.message);
               }
             },
-      
+
             child: BlocBuilder<SaveAnthroBloc, AnthroState>(
               builder: (context, state) {
                 return Padding(
@@ -122,7 +127,7 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
                   child: SingleChildScrollView(
                     child: Form(
                       key: _formKey,
-      
+
                       child: Column(
                         mainAxisAlignment: .center,
                         children: [
@@ -143,93 +148,103 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
                                 'Si no conoces tus datos, acercate al departamento de Nutrición ULV para tu medición corporal',
                             fontSize: context.fontsSize.caption,
                           ),
-      
+
                           SizedBox(height: context.spacing.xl),
-      
+
                           BackgroundContainer(
                             // color: context.colors.secondary,
 
                             child: Column(
                               children: [
-                                CustomTextFormField(
-                                  label: 'Altura (cm)',
-                                  hintText: 'Ej: 175',
-                                  keyboardType: TextInputType.number,
+                                // CustomTextFormField(
+                                //   label: 'Altura (cm)',
+                                //   hintText: 'Ej: 175',
+                                //   keyboardType: TextInputType.number,
+                                //   controller: _heightController,
+                                //   validator: (v) =>
+                                //       numberValidator(v, 'Ingresa tu altura'),
+                                // ),
+                                // SizedBox(height: context.spacing.md),
+
+                                // NumericRulerPicker(
+                                //   controller: _heightController,
+                                //   suffix: ' kg',
+                                //   onValueChanged: (value) {
+                                //     // setState(() => _heightController.value = value.toDouble());
+                                //   },
+                                //   ranges: const [
+                                //     RulerRange(begin: 60, end: 80, scale: 1),
+                                //   ],
+                                // ),
+                                NumericRulerPicker(
                                   controller: _heightController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa tu altura'),
+                                  suffix: ' cm',
+                                  title: 'Altura',
+                                  
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Peso (kg)',
-                                  hintText: 'Ej: 68.5',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+                                NumericRulerPicker(
                                   controller: _weightController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa tu peso'),
+                                  suffix: ' kg',
+                                  title: 'Peso',
+                                  step: 0.1,
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Masa Muscular Esquelética (MME)',
-                                  hintText: 'Ej: 24',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+                                NumericRulerPicker(
                                   controller: _smmController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa tu MME'),
+                                  suffix: ' kg',
+                                  title: 'Masa Músculo Esquelética',
+                                  step: 0.1,
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Masa de Grasa (kg)',
-                                  hintText: 'Ej: 20',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+                                NumericRulerPicker(
                                   controller: _fatMassController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa el dato'),
+                                  suffix: ' kg',
+                                  title: 'Masa de grasa',
+                                  step: 0.1,
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Porcentaje de Grasa (%)',
-                                  hintText: 'Ej: 20',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+                                NumericRulerPicker(
                                   controller: _bodyFatPercentController,
-                                  validator: (v) => numberValidator(
-                                    v,
-                                    'Ingresa el porcentaje',
-                                  ),
+                                  suffix: ' %',
+                                  title: 'Porcentaje de grasa',
+                                  
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Indice Masa Corporal (IMC)',
-                                  hintText: 'Ej: 22',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+
+                                NumericRulerPicker(
                                   controller: _bmiController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa el dato'),
+                                  suffix: ' kg/m2',
+                                  title: 'Indice de Masa Corporal',
+                                  step: 0.1,
                                 ),
-                                SizedBox(height: context.spacing.md),
-      
-                                CustomTextFormField(
-                                  label: 'Indice Cintura Cadera (ICC)',
-                                  hintText: 'Ej: 0.85',
-                                  keyboardType: TextInputType.number,
+                                SizedBox(height: context.spacing.lg),
+
+                                NumericRulerPicker(
                                   controller: _whrController,
-                                  validator: (v) =>
-                                      numberValidator(v, 'Ingresa el dato'),
+                                  suffix: ' ',
+                                  title: 'Indice Cintura Cadera',
+                                  step: 0.1,
                                 ),
-                                SizedBox(height: context.spacing.md),
+                                SizedBox(height: context.spacing.lg),
+
+                                
                               ],
                             ),
                           ),
-      
+
                           SizedBox(height: context.spacing.lg),
                           SimpleButton(
                             label: 'Guardar',
-                            color: context.colors.surface,
+                            fullWidth: true,
+                            fontSize: context.fontsSize.body,
+                            textColor: context.colors.background,
+                            color: context.colors.onSecondary,
                             onPressed: () => _onSubmit(context),
                           ),
                           SizedBox(height: context.spacing.md),

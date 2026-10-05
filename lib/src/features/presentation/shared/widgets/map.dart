@@ -14,6 +14,8 @@ class MapWidget extends StatelessWidget {
   final bool interactive;
   final VoidCallback? mapReady;
   final double pointSize = 26;
+  final bool satellite;
+  final bool showCurrentLocation;
 
   const MapWidget({
     super.key,
@@ -22,10 +24,10 @@ class MapWidget extends StatelessWidget {
     this.endPoint,
     this.routePoints = const [],
     this.interactive = true,
-    this.mapReady
+    this.mapReady,
+    this.satellite = true,
+    this.showCurrentLocation = true,
   });
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +35,32 @@ class MapWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colors = context.colors;
 
+    CameraFit? initialFit() {
+      if (routePoints.length < 2) return null;
+
+      final bounds = LatLngBounds.fromPoints(routePoints);
+
+      // Zero-area bounds (all points identical) would produce Infinity/NaN zoom
+      if (bounds.north == bounds.south && bounds.east == bounds.west) {
+        return null;
+      }
+
+      return CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.all(30),
+        maxZoom: 18,
+      );
+    }
+
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
-        initialCenter: const LatLng(0, 0),
+        initialCameraFit: initialFit(),
+        // Only used if there is no route
+        initialCenter: startPoint ?? const LatLng(0, 0),
         initialZoom: 12,
         minZoom: 3,
-        maxZoom: 19,
+        maxZoom: 22,
         onMapReady: mapReady,
 
         interactionOptions: InteractionOptions(
@@ -49,10 +70,11 @@ class MapWidget extends StatelessWidget {
 
       children: [
         TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          urlTemplate: satellite
+              ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+              : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.salud_ulv_app',
-
-          tileBuilder: isDark ? darkModeTileBuilder : null,
+          tileBuilder: (!satellite && isDark) ? darkModeTileBuilder : null,
         ),
 
         // Ruta recorrida (opcional)
@@ -61,8 +83,19 @@ class MapWidget extends StatelessWidget {
             polylines: [
               Polyline(
                 points: routePoints,
-                strokeWidth: 4,
-                color: colors.onSecondary,
+                strokeWidth: 5,
+                gradientColors: [
+                  colors.primary,
+                  colors.onPrimary,
+                  colors.secondary,
+                  colors.onSecondary,
+                  colors.tertiary,
+                  // colors.success,
+                ], 
+                // optional: where each color sits, from 0.0 to 1.0
+                // colorsStop: [0.0, 1.0],
+                strokeCap: StrokeCap.round,
+                strokeJoin: StrokeJoin.round,
               ),
             ],
           ),
@@ -104,19 +137,19 @@ class MapWidget extends StatelessWidget {
           ],
         ),
 
+        if(showCurrentLocation)
         CurrentLocationLayer(
           style: LocationMarkerStyle(
             marker: DefaultLocationMarker(child: Icon(Icons.location_pin)),
             markerSize: Size(20, 20),
             markerDirection: .heading,
           ),
+        
         ),
       ],
     );
   }
 }
-
-
 
 class _RoutePin extends StatelessWidget {
   final IconData icon;
@@ -131,30 +164,29 @@ class _RoutePin extends StatelessWidget {
         color: color ?? context.colors.onPrimary,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
-        boxShadow: context.shadows.smBoxShadow
+        boxShadow: context.shadows.smBoxShadow,
       ),
       child: Icon(icon, color: Colors.white, size: 18),
     );
   }
 }
 
-
 void fitRouteToScreen(List<LatLng> routePoints, MapController mapController) {
-    if (routePoints.isEmpty) return;
+  if (routePoints.isEmpty) return;
 
-    if (routePoints.length == 1) {
-      mapController.move(routePoints.first, 16);
-      return;
-    }
-
-    final bounds = LatLngBounds.fromPoints(routePoints);
-
-    mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: EdgeInsets.all(30),
-        maxZoom: 18,
-        // minZoom: 15
-      ),
-    );
+  if (routePoints.length == 1) {
+    mapController.move(routePoints.first, 16);
+    return;
   }
+
+  final bounds = LatLngBounds.fromPoints(routePoints);
+
+  mapController.fitCamera(
+    CameraFit.bounds(
+      bounds: bounds,
+      padding: EdgeInsets.all(30),
+      maxZoom: 18,
+      // minZoom: 15
+    ),
+  );
+}

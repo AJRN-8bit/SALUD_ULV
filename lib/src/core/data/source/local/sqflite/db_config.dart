@@ -1,5 +1,3 @@
-
-
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -19,10 +17,15 @@ class AppDatabase {
   static Future<Database> _initDatabase() async {
     final String path = join(await getDatabasesPath(), 'SaludULV.db');
 
-
     return await openDatabase(
-      path, 
-      version: 1, 
+      path,
+      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) {},
+
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE Users (
@@ -36,27 +39,27 @@ class AppDatabase {
             roles TEXT DEFAULT NULL,
             createdAt TEXT NOT NULL
           )
-        '''); 
+        ''');
 
         await db.execute('''
           CREATE TABLE Members (
-            userUUID TEXT PRIMARY KEY REFERENCES Users(userUUID),
+            userUUID TEXT PRIMARY KEY,
             groupID INTEGER NULL,
-            typeID INTERGET NULL,
+            typeID INTERGER NULL,
 
             dateOfBirth TEXT DEFAULT NULL,
             age INTEGER DEFAULT NULL,
             level INTEGER NULL DEFAULT 0,
-            gender TEXT DEFAULT NULL
+            gender TEXT DEFAULT NULL,
             
+            FOREIGN KEY (userUUID) REFERENCES Users (userUUID) ON DELETE CASCADE
           )
-        '''); 
+        ''');
 
-
-      await db.execute('''
+        await db.execute('''
         CREATE TABLE Anthropometrics (
           anthropometricID TEXT PRIMARY KEY NOT NULL,
-          userUUID TEXT NOT NULL REFERENCES Users(userUUID),
+          userUUID TEXT NOT NULL,
           height REAL NOT NULL,
           weight REAL NOT NULL,
           smm REAL NOT NULL,
@@ -66,90 +69,90 @@ class AppDatabase {
           whr REAL NOT NULL,
           registeredAt TEXT NOT NULL,
           
-          isSynced INTEGER NOT NULL DEFAULT 0
+          isSynced INTEGER NOT NULL DEFAULT 0,
+
+          FOREIGN KEY (userUUID) REFERENCES Users (userUUID) ON DELETE CASCADE
         )
       ''');
 
-
-
-
-      // Categories
-       await db.execute('''
+        // Categories
+        await db.execute('''
         CREATE TABLE ActivityCategory (
           categoryID INTEGER PRIMARY KEY,
           categoryName TEXT NOT NULL
         )
       ''');
 
-      // Sets categories
-      await db.insert('ActivityCategory', {'categoryID': 1, 'categoryName': 'aerobic'});
-      await db.insert('ActivityCategory', {'categoryID': 2, 'categoryName': 'strength'});
+        // Sets categories
+        await db.insert('ActivityCategory', {
+          'categoryID': 1,
+          'categoryName': 'aerobic',
+        });
+        await db.insert('ActivityCategory', {
+          'categoryID': 2,
+          'categoryName': 'strength',
+        });
 
-
-
-
-
-      await db.execute('''
+        await db.execute('''
         CREATE TABLE WalkActivity (
           activityID TEXT PRIMARY KEY NOT NULL,
-          userUUID TEXT NOT NULL REFERENCES Users(userUUID),
+          userUUID TEXT NOT NULL,
           categoryID INTEGER NOT NULL REFERENCES ActivityCategory(categoryID),
+          registeredAt TEXT NOT NULL,
 
-          duration_ms INTEGER DEFAULT NULL,
-          caloriesBurned REAL DEFAULT NULL,
-          registeredAt TEXT DEFAULT NULL,
+          duration_ms INTEGER DEFAULT 0,
+          caloriesBurned REAL DEFAULT 0,
 
-          distance REAL DEFAULT NULL,
-          avgPace REAL DEFAULT NULL,
-          elevationGain REAL DEFAULT NULL,
-          avgCadence REAL DEFAULT NULL,
-          heartRate REAL DEFAULT NULL,
+          distance REAL DEFAULT 0,
+          avgPace REAL DEFAULT 0,
+          elevationGain REAL DEFAULT 0,
+          avgCadence REAL DEFAULT 0,
+          heartRate REAL DEFAULT 0,
 
-          steps INTEGER DEFAULT NULL,
-          avgSteps REAL DEFAULT NULL,
+          steps INTEGER DEFAULT 0,
+          avgSteps REAL DEFAULT 0,
 
-          isSynced INTEGER NOT NULL DEFAULT 0
+          isSynced INTEGER NOT NULL DEFAULT 0,
+
+          FOREIGN KEY (userUUID) REFERENCES Users (userUUID) ON DELETE CASCADE
         )
-      ''');  // Steps is null to allow devices with no accelerometer
+      '''); // Steps is null to allow devices with no accelerometer
 
-      await db.execute('''
+        await db.execute('''
         CREATE INDEX idx_WalkActivity_activity_useruuid
         ON WalkActivity(activityID, userUUID)
       ''');
 
-
-            // Exercise cache
-      // Steps just for walking
-      await db.execute('''
+        // Exercise cache
+        // Steps just for walking
+        await db.execute('''
         CREATE TABLE WalkActivitySample (
           sampleID INTEGER PRIMARY KEY AUTOINCREMENT,
-          activityID TEXT NOT NULL REFERENCES WalkActivity(activityID),
+          activityID TEXT NOT NULL,
 
-          timestamp_ms INTEGER NOT NULL,
+          timestamp_ms INTEGER DEFAULT 0,
 
-          heartRate INTEGER DEFAULT NULL,
-          distance REAL DEFAULT NULL,
-          calories REAL DEFAULT NULL,
-          steps INTEGER DEFAULT NULL,
-          pace REAL DEFAULT NULL,
-          speed REAL DEFAULT NULL,
-          cadence REAL DEFAULT NULL,
-          elevation REAL DEFAULT NULL,
+          heartRate INTEGER DEFAULT 0,
+          distance REAL DEFAULT 0,
+          calories REAL DEFAULT 0,
+          steps INTEGER DEFAULT 0,
+          pace REAL DEFAULT 0,
+          speed REAL DEFAULT 0,
+          cadence REAL DEFAULT 0,
+          elevation REAL DEFAULT 0,
 
-          latitude REAL DEFAULT NULL,
-          longitude REAL DEFAULT NULL
+          latitude REAL DEFAULT 0,
+          longitude REAL DEFAULT 0,
+
+          FOREIGN KEY (activityID) REFERENCES WalkActivity (activityID) ON DELETE CASCADE
         )
       ''');
 
-
-      await db.execute('''
+        await db.execute('''
         CREATE INDEX idx_WalkActivitySample_activity_timestamp
         ON WalkActivitySample(activityID, timestamp_ms)
       ''');
-
-
-
-      }
+      },
     );
   }
 }

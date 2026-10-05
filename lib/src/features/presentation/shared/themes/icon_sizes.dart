@@ -21,12 +21,12 @@ class AppIconSizes extends ThemeExtension<AppIconSizes> {
   final double mega;
 
   static const standard = AppIconSizes(
-    xs: 20,
-    sm: 30,
-    md: 40,
-    lg: 50,
-    xl: 60,
-    xxl: 80,
+    xs: 10,
+    sm: 15,
+    md: 20,
+    lg: 25,
+    xl: 30,
+    xxl: 75,
     mega: 150
   );
 

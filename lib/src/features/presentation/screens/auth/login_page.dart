@@ -5,11 +5,13 @@ import 'package:salud_ulv_app/src/core/usecase/auth/login_usecase.dart';
 import 'package:salud_ulv_app/src/core/data/DTOs/member_dto.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/member_repo.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/main_wrapper.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/input_validators.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/launch_url.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/input_fields.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 import 'package:salud_ulv_app/src/features/services/check_connection.dart';
 import 'package:salud_ulv_app/src/core/data/source/token/token.dart';
 import 'package:salud_ulv_app/src/core/data/source/token/token_storage.dart';
@@ -77,11 +79,12 @@ class _SignInPageState extends State<_SignInPage> {
   @override
   Widget build(BuildContext context) {
     return GradientBackground(
-      // colors: [
-      //   context.colors.onSecondary,
-      //   context.colors.secondary,
-      //   context.colors.primary,
-      // ],
+      stops: [0.5,0.6],
+      colors: [
+        context.colors.onSecondary,
+        context.colors.secondary,
+        // context.colors.primary,
+      ],
 
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -136,39 +139,62 @@ class _SignInPageState extends State<_SignInPage> {
 
                       child: Column(
                         mainAxisAlignment: .center,
+                        crossAxisAlignment: .start,
+                        mainAxisSize: .min,
                         children: [
+                          SizedBox(height: context.spacing.xxl),
+
                           CustomTextWidget(
-                            label: "Inicia sesión",
+                            label: "¡Hola de Nuevo!",
+                            color: context.colors.textSecondary,
                             fontSize: context.fontsSize.display,
                             fontWeight: FontWeight.w700,
                           ),
-
-                          SizedBox(height: context.spacing.lg),
-
+                      
+                          SizedBox(height: context.spacing.sm),
+                      
+                          CustomTextWidget(
+                            label: "Bienvenido de regreso a Salud ULV",
+                            color: context.colors.textSecondary,
+                            fontSize: context.fontsSize.body,
+                            // fontWeight: FontWeight.w700,
+                          ),
+                      
+                          SizedBox(height: context.spacing.xl),
+                      
                           BackgroundContainer(
+                            // fullWidth: true,
+                            pHeight: 500,
                             child: Column(
                               children: [
+                                CustomTextWidget(label: "Inicia sesión", fontSize: context.fontsSize.title, fontWeight: .w700,),
+                                SizedBox(height: context.spacing.md,),
+                          
                                 CustomTextFormField(
                                   label: "Matrícula o correo electrónico",
                                   controller: _inputController,
                                   prefixIcon: FontAwesomeIcons.at,
+                                  validator: (v) => inputValidator(v, "Porfavor ingresa un identificador"),
                                 ),
                                 SizedBox(height: context.spacing.md),
-
+                          
                                 CustomPasswordField(
                                   label: "Contraseña",
                                   controller: _passwordController,
+                                  validator: (v) => inputValidator(v, "Porfavor ingresa tu contraseña"),
                                 ),
-                                SizedBox(height: context.spacing.md),
-
+                                SizedBox(height: context.spacing.xxl),
+                          
                                 state is AuthLoading
                                     ? const CircularProgressIndicator()
                                     : SimpleButton(
                                         label: "Entrar",
-                                        color: context.colors.primary,
+                                        fullWidth: true,
+                                        textColor: context.colors.textSecondary,
+                                        color: context.colors.tertiary,
                                         onPressed: () => _onSubmit(context),
                                       ),
-
+                          
                                 SizedBox(height: context.spacing.lg),
                                 Row(
                                   mainAxisAlignment: .center,
@@ -178,7 +204,7 @@ class _SignInPageState extends State<_SignInPage> {
                                       fontSize: context.fontsSize.caption,
                                     ),
                                     SizedBox(width: context.spacing.xs),
-
+                          
                                     GestureDetector(
                                       onTap: () => Navigator.push(
                                         context,
@@ -190,6 +216,32 @@ class _SignInPageState extends State<_SignInPage> {
                                         label: "Registrate",
                                         fontSize: context.fontsSize.caption,
                                         color: context.colors.success,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // SizedBox(height: context.spacing.xl,),
+                                SizedBox(height: context.spacing.xxl,),
+                                SizedBox(height: context.spacing.xxl,),
+
+                                Column(
+                                  mainAxisAlignment: .center,
+                                  children: [
+                                    CustomTextWidget(
+                                      label: "Al iniciar sesión con una cuenta, esta aceptando nuestra ",
+                                      fontSize: context.fontsSize.details,
+                                    ),
+                                    SizedBox(width: context.spacing.xs),
+                          
+                                    GestureDetector(
+                                      onTap: () => launchUrls('https://ajrn-8bit.github.io/privacy_policies/salud-ulv/index.html'),
+                                      
+                                      child: CustomTextWidget(
+                                        label: "Politica de Privacidad.",
+                                        fontSize: context.fontsSize.details,
+                                        color: context.colors.textPrimary,
+                                        fontWeight: .w700,
                                       ),
                                     ),
                                   ],

@@ -26,6 +26,8 @@ class UserNameLoaded extends ProfileState {
   UserNameLoaded(this.name);
 }
 
+class ProfileDataSet extends ProfileState{}
+
 
 class ProfileError extends ProfileState{
   final String message;

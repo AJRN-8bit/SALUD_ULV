@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:salud_ulv_app/src/core/data/source/local/sqflite/member_repo.dart';
 import 'package:salud_ulv_app/src/core/models/anthropometrics.dart';
+import 'package:salud_ulv_app/src/core/usecase/anthropometrics/check_recent.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_byfield_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_recent_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/getall_usecase.dart';
@@ -13,14 +15,19 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_state.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/anthropometrics/register_anthro_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/records/anthropometrics/anthro_full_list_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/helpers/fomaters.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/eval_value.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/exercise_list_widgets.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/snackbar.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/value_range.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/containers.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/data_tiles.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/graphs.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/listviews.dart';
-import 'package:salud_ulv_app/src/features/presentation/shared/widgets/text.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class AnthroRecordsPage extends StatelessWidget {
   const AnthroRecordsPage({super.key});
@@ -47,6 +54,16 @@ class AnthroRecordsPage extends StatelessWidget {
               CurrentUserSession(),
             ),
           ),
+        ),
+
+        BlocProvider(
+          create: ((context) => EvalRecentAnthroBloc(
+            checkRecentAnthroUseCase: CheckRecentAnthroUseCase(
+              AnthroLocalStorage(),
+              CurrentUserSession(),
+              MemberLocalRepo()
+            ),
+          )),
         ),
       ],
 
@@ -101,6 +118,7 @@ class _AnthroRecordsPageState extends State<_AnthroRecordsPage> {
     super.initState();
     // context.read<GetAnthroRecentBloc>().add(AnthroGetRecentEvent());
     context.read<GetAnthroAllBloc>().add(AnthroGetAllEvent());
+    context.read<EvalRecentAnthroBloc>().add(AnthroEvaluationEvent());
     // context.read<GetAnthroAllBloc>().add(A);
   }
 
@@ -122,10 +140,21 @@ class _AnthroRecordsPageState extends State<_AnthroRecordsPage> {
           //   onPressed: () => Navigator.pop(context),
           // ),
           title: Text(
-            'Antropométricos',
+            'Antropometría',
             style: TextStyle(color: context.colors.textPrimary),
           ),
           centerTitle: true,
+
+          actions: [
+            CustomIconButton(
+              icon: Icons.add_circle_rounded,
+              label: "Agregar",
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RegisterAnthroPage()),
+              ),
+            ),
+          ],
         ),
 
         body: SafeArea(
@@ -152,385 +181,438 @@ class _AnthroRecordsPageState extends State<_AnthroRecordsPage> {
                   }
                 },
               ),
+              BlocListener<EvalRecentAnthroBloc, AnthroState>(
+                listener: (context, state) {
+                  // if (state is AnthroError) {
+                  //   CustomSnackBar.showError(context, state.message);
+                  // }
+                },
+              ),
             ],
 
             child: SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  key: _formKey,
-                  scrollDirection: .vertical,
+              child: SingleChildScrollView(
+                key: _formKey,
+                scrollDirection: .vertical,
 
-                  child: Column(
-                    // mainAxisSize: .min,
-                    children: [
-                      BlocBuilder<GetAnthroAllBloc, AnthroState>(
-                        builder: (context, state) {
-                          if (state is AnthroLoading) {
-                            return const CircularProgressIndicator();
-                          }
+                child: Column(
+                  // mainAxisSize: .min,
+                  children: [
+                    BlocBuilder<GetAnthroAllBloc, AnthroState>(
+                      builder: (context, state) {
+                        if (state is AnthroLoading) {
+                          return const CircularProgressIndicator();
+                        }
 
-                          if (state is AnthroListLoaded) {
-                            if (state.data == null) {
-                              return Column(
-                                children: [
-                                  // SizedBox(height: context.spacing.md),
+                        if (state is AnthroListLoaded) {
+                          if (state.data == null) {
+                            return Column(
+                              children: [
+                                SizedBox(height: context.spacing.xxl),
 
-                                  CustomTextWidget(
-                                    label:
-                                        "Parece que no hay datos antropométicos",
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: context.fontsSize.title,
-                                  ),
-                                  SizedBox(height: context.spacing.md),
-                                  CustomTextWidget(
-                                    label:
-                                        "Agregalos para visualizar tu progreso personal",
-                                    fontSize: context.fontsSize.body,
-                                  ),
-                                  SizedBox(height: context.spacing.lg),
+                                CustomTextWidget(
+                                  label:
+                                      "Parece que no hay datos antropométicos registrados",
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: context.fontsSize.title,
+                                ),
+                                SizedBox(height: context.spacing.md),
+                                CustomTextWidget(
+                                  label:
+                                      "Agregalos para visualizar tu progreso personal",
+                                  fontSize: context.fontsSize.body,
+                                ),
+                                SizedBox(height: context.spacing.lg),
 
-                                  SimpleButton(
-                                    label: "Agregar",
-                                    color: context.colors.surface,
-                                    onPressed: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            RegisterAnthroPage(),
-                                      ),
+                                SimpleButton(
+                                  label: "Agregar datos",
+                                  fontSize: context.fontsSize.body,
+                                  color: context.colors.secondary,
+                                  textColor: context.colors.textSecondary,
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          RegisterAnthroPage(),
                                     ),
                                   ),
-                                ],
-                              );
-                            }
+                                ),
+                              ],
+                            );
+                          }
 
-                            
+                          records = state.data!;
+                          final current = records[_index];
 
-                            records = state.data!;
-                            final current = records[_index];
+                          return Padding(
+                            padding: EdgeInsets.all(context.spacing.md),
+                            child: Column(
+                              mainAxisAlignment: .start,
+                              children: [
+                                RecordListPaginator(
+                                  title: formatDateWithWord(current.registeredAt!),
+                                  subtitle: 'Registro ${_index + 1} de ${records.length}',
+                                  hasPrevious: _hasPrevious,
+                                  hasNext: _hasNext,
+                                  onPrevious: _goPrevious,
+                                  onNext: _goNext,
+                                ),
 
-                            return Padding(
-                              padding: EdgeInsets.all(context.spacing.md),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                SizedBox(height: context.spacing.sm),
+
+                                BackgroundContainer(
+                                  child: Column(
+                                    // mainAxisAlignment: .start,
+                                    crossAxisAlignment: .stretch,
                                     children: [
-                                      IconButton(
-                                        onPressed: _hasPrevious
-                                            ? _goPrevious
-                                            : null,
-                                        icon: Icon(
-                                          Icons.chevron_left_rounded,
-                                          color: _hasPrevious
-                                              ? context.colors.textPrimary
-                                              : context.colors.textSecondary
-                                                    .withValues(alpha: 0.3),
-                                        ),
-                                      ),
-
-                                      Column(
+                                      Row(
+                                        mainAxisAlignment: .spaceEvenly,
+                                        mainAxisSize: .min,
+                                        crossAxisAlignment: .center,
                                         children: [
-                                          CustomTextWidget(
-                                            label: _formatDate(
-                                              current.registeredAt!,
-                                            ),
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: context.fontsSize.title,
+                                          GridDataTileTrasparent(
+                                            label: 'Altura',
+                                            data: current.height
+                                                .toStringAsFixed(1),
+                                            icon: FontAwesomeIcons.ruler,
+                                            width: 150,
+                                            sufix: 'cm',
                                           ),
-                                          Text(
-                                            'Registro ${_index + 1} de ${records.length}',
-                                            style: TextStyle(
-                                              color:
-                                                  context.colors.textSecondary,
-                                              fontSize: context.fontsSize.body,
-                                            ),
+                                          GridDataTileTrasparent(
+                                            label: 'Peso',
+                                            data: current.weight
+                                                .toStringAsFixed(1),
+                                            icon: FontAwesomeIcons.weightScale,
+                                            width: 125,
+                                            sufix: 'kg',
                                           ),
                                         ],
                                       ),
 
-                                      IconButton(
-                                        onPressed: _hasNext ? _goNext : null,
-                                        icon: Icon(
-                                          Icons.chevron_right_rounded,
-                                          color: _hasNext
-                                              ? context.colors.textPrimary
-                                              : context.colors.textSecondary
-                                                    .withValues(alpha: 0.3),
-                                        ),
+                                      SizedBox(height: context.spacing.lg),
+                                      CustomTextWidget(
+                                        label: 'Rangos',
+                                        fontSize: context.fontsSize.title,
+                                        textAlign: .left,
+                                        fontWeight: .w800,
+                                      ),
+                                      SizedBox(height: context.spacing.md),
+
+                                      BlocBuilder<
+                                        EvalRecentAnthroBloc,
+                                        AnthroState
+                                      >(
+                                        builder: (context, state) {
+                                          if (state is AnthroEvaluated &&
+                                              !(state.anthroAlerts == null ||
+                                                  state.anthroRanges == null)) {
+                                            final anthroRanges =
+                                                state.anthroRanges;
+                                            final anthroAlerts =
+                                                state.anthroAlerts;
+                                            // final anthroDataList = [current.weight, current.smm, current.]
+                                            debugPrint(anthroRanges.toString());
+                                            debugPrint(anthroAlerts.toString());
+
+                                            final currentValues = {
+                                              'Peso': current.weight,
+                                              'Masa Músculo Esquelética':
+                                                  current.smm,
+                                              'Masa grasa': current.fatMass,
+                                              'Porcentaje grasa':
+                                                  current.bodyFatPercentage,
+                                              'IMC': current.bmi,
+                                              'ICC': current.whr,
+                                            };
+
+                                            return Column(
+                                              crossAxisAlignment: .stretch,
+                                              children: [
+                                                for (final entry
+                                                    in anthroRanges!.entries)
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                      bottom:
+                                                          context.spacing.md,
+                                                    ),
+                                                    child: ValueRangeIndicator(
+                                                      height: 10,
+                                                      markerSize: 15,
+                                                      fontSize: context
+                                                          .fontsSize
+                                                          .caption,
+                                                      value:
+                                                          currentValues[entry
+                                                              .key]!, // the num value, e.g. 22.5
+                                                      min: anthroRanges[entry.key]!
+                                                          .min
+                                                          .toDouble(), // matching min from ranges map
+                                                      max: anthroRanges[entry.key]!
+                                                          .max
+                                                          .toDouble(), // matching max from ranges map
+                                                      title: entry
+                                                          .key, // 'Peso', 'SMM', etc.
+                                                    ),
+                                                  ),
+
+                                                SizedBox(
+                                                  height: context.spacing.lg,
+                                                ),
+                                                CustomTextWidget(
+                                                  label: 'Resumen',
+                                                  fontSize:
+                                                      context.fontsSize.title,
+                                                  textAlign: .left,
+                                                  fontWeight: .w800,
+                                                ),
+
+                                                SizedBox(
+                                                  height: context.spacing.sm,
+                                                ),
+
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      .spaceEvenly,
+                                                  crossAxisAlignment: .center,
+                                                  mainAxisSize: .max,
+                                                  children: [
+                                                    CustomTextWidget(
+                                                      label: 'Debajo del rango',
+                                                      fontSize: context
+                                                          .fontsSize
+                                                          .caption,
+                                                      color: context.colors.low,
+                                                      fontWeight: .w800,
+                                                      icon:
+                                                          Icons.arrow_downward,
+                                                      backgroundColor: context
+                                                          .colors
+                                                          .low
+                                                          .withAlpha(25),
+                                                      paddingSize:
+                                                          context.spacing.sm,
+                                                    ),
+                                                    // SizedBox(wi: context.spacing.sm,),
+                                                    CustomTextWidget(
+                                                      label: 'Arriba del rango',
+                                                      fontSize: context
+                                                          .fontsSize
+                                                          .caption,
+                                                      color:
+                                                          context.colors.danger,
+                                                      fontWeight: .w800,
+                                                      icon: Icons.arrow_upward,
+                                                      backgroundColor: context
+                                                          .colors
+                                                          .danger
+                                                          .withAlpha(25),
+                                                      paddingSize:
+                                                          context.spacing.sm,
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                SizedBox(
+                                                  height: context.spacing.lg,
+                                                ),
+
+                                                for (final entry
+                                                    in anthroAlerts!.entries)
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                      bottom:
+                                                          context.spacing.sm,
+                                                    ),
+                                                    child: AnthroValueIndicator(
+                                                      field: entry.key,
+                                                      value: entry.value,
+                                                      range:
+                                                          anthroRanges[entry
+                                                              .key]!,
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
+                                          }
+                                          return CustomTextWidget(
+                                            label: "No hay datos",
+                                            fontSize: context.fontsSize.body,
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
+                                ),
 
-                                  SizedBox(height: context.spacing.sm),
+                                // SizedBox(height: context.spacing.xl),
 
-                                  // --- Recientes
-                                  // Align(
-                                  //   alignment: .centerLeft,
-                                  //   child: CustomTextWidget(
-                                  //     label: "Datos recientes",
-                                  //     fontSize: context.fontsSize.title,
-                                  //   ),
-                                  // ),
-                                  SizedBox(height: context.spacing.md),
+                                // --- Otros datos
+                                // Align(
+                                //   alignment: .centerLeft,
+                                //   child: CustomTextWidget(
+                                //     label: "Estadísticas",
+                                //     fontSize: context.fontsSize.title,
+                                //   ),
+                                // ),
+                                // SizedBox(height: context.spacing.sm),
 
-                                  BackgroundContainer(
-                                    child: Column(
-                                      children: [
-                                        CustomListView(
-                                          addContentPadding: true,
-                                          lines: 2,
-                                          widgets: [
-                                            GridDataTile(
-                                              icon: FontAwesomeIcons.person,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "Altura",
-                                              data: "${(current.height) / 100}",
-                                              sufix: 'm',
-                                            ),
+                                // BackgroundContainer(
+                                //   child: Column(children: [Text('hola')]),
+                                // ),
+                                // SizedBox(height: context.spacing.lg),
 
-                                            GridDataTile(
-                                              icon:
-                                                  FontAwesomeIcons.weightScale,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "Peso",
-                                              // data: '${walk.duration!.inHours}:${walk.duration!.inMinutes / 60}:${walk.duration!.inSeconds / 60}',
-                                              data: current.weight.toString(),
-                                              sufix: 'kg',
-                                            ),
+                                // --- Graficas
+                                // Align(
+                                //   alignment: .centerLeft,
+                                //   child: CustomTextWidget(
+                                //     label: "Progreso",
+                                //     fontSize: context.fontsSize.title,
+                                //   ),
+                                // ),
+                                // SizedBox(height: context.spacing.sm),
 
-                                            GridDataTile(
-                                              icon: FontAwesomeIcons.dumbbell,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "SMM",
-                                              data: current.smm.toString(),
-                                              sufix: 'kg',
-                                            ),
+                                // BlocBuilder<GetAnthroAllBloc, AnthroState>(
+                                //   builder: (context, state) {
+                                //     if (state is AnthroListLoaded) {
+                                //       final data = state.data!;
+                                //       final buttonColor =
+                                //           context.colors.surface;
 
-                                            GridDataTile(
-                                              icon: FontAwesomeIcons
-                                                  .weightHanging,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "Masa de grasa",
-                                              data: current.fatMass
-                                                  .toString(),
-                                              sufix: 'kg',
-                                            ),
+                                //       return BackgroundContainer(
+                                //         child: Column(
+                                //           children: [
+                                //             CustomListView(
+                                //               addContentPadding: true,
+                                //               spacing: context.spacing.sm,
+                                //               widgets: [
+                                //                 SimpleButton(
+                                //                   label: "Altura",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.height,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "Peso",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.weight,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "SMM",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.smm,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "M.Grasa",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.fatMass,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "% Grasa",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField
+                                //                         .bodyFatPercentage,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "IMC",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.bmi,
+                                //                   ),
+                                //                 ),
+                                //                 SimpleButton(
+                                //                   label: "ICC",
+                                //                   color: buttonColor,
+                                //                   onPressed: () => _selectField(
+                                //                     AnthroField.whr,
+                                //                   ),
+                                //                 ),
+                                //               ],
+                                //             ),
 
-                                            GridDataTile(
-                                              icon: FontAwesomeIcons.percent,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "Grasa corporal",
-                                              data: current.bodyFatPercentage.toString(),
-                                              sufix: '%',
-                                            ),
+                                //             SizedBox(
+                                //               height: context.spacing.lg,
+                                //             ),
 
-                                            GridDataTile(
-                                              icon:
-                                                  FontAwesomeIcons.weightScale,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "IMC",
-                                              data: current.bmi.toString(),
-                                              sufix: 'kg/m²',
-                                            ),
+                                //             CustomDataChart(
+                                //               type: ChartType.bar,
+                                //               title: titleForSelectedField(
+                                //                 _selectedField,
+                                //               ),
 
-                                            GridDataTile(
-                                              icon: FontAwesomeIcons
-                                                  .rulerHorizontal,
-                                              iconColor:
-                                                  context.colors.onTertiary,
-                                              label: "ICC",
-                                              data: current.whr.toString(),
-                                              // sufix: '',
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: context.spacing.lg),
+                                //               times: data
+                                //                   .map((s) => s.registeredAt)
+                                //                   .toList(),
 
-                                  // --- Otros datos
-                                  // Align(
-                                  //   alignment: .centerLeft,
-                                  //   child: CustomTextWidget(
-                                  //     label: "Estadísticas",
-                                  //     fontSize: context.fontsSize.title,
-                                  //   ),
-                                  // ),
-                                  // SizedBox(height: context.spacing.sm),
+                                //               values: valuesForSelectedField(
+                                //                 data,
+                                //                 _selectedField,
+                                //               ),
+                                //             ),
+                                //           ],
+                                //         ),
+                                //       );
+                                //     }
+                                //     return SizedBox();
+                                //   },
+                                // ),
 
-                                  // BackgroundContainer(
-                                  //   child: Column(children: [Text('hola')]),
-                                  // ),
-                                  // SizedBox(height: context.spacing.lg),
+                                // SizedBox(height: context.spacing.lg),
 
-                                  // --- Graficas
-                                  Align(
-                                    alignment: .centerLeft,
-                                    child: CustomTextWidget(
-                                      label: "Progreso",
-                                      fontSize: context.fontsSize.title,
-                                    ),
-                                  ),
-                                  SizedBox(height: context.spacing.sm),
+                                // const SizedBox(height: 20),
 
-                                  BlocBuilder<GetAnthroAllBloc, AnthroState>(
-                                    builder: (context, state) {
-                                      if (state is AnthroListLoaded) {
-                                        final data = state.data!;
-                                        final buttonColor = context.colors.surface;
+                                // BlocBuilder<GetAnthroByFieldBloc, AnthroState>(
+                                //   builder: (context, state) {
+                                //     if (state is AnthroLoading) {
+                                //       return const CircularProgressIndicator();
+                                //     }
 
-                                        return BackgroundContainer(
-                                          child: Column(
-                                            children: [
-                                              CustomListView(
-                                                addContentPadding: true,
-                                                spacing: context.spacing.sm,
-                                                widgets: [
-                                                  SimpleButton(
-                                                    label: "Altura",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.height,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "Peso",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.weight,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "SMM",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.smm,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "M.Grasa",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.fatMass,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "% Grasa",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField
-                                                              .bodyFatPercentage,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "IMC",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.bmi,
-                                                        ),
-                                                  ),
-                                                  SimpleButton(
-                                                    label: "ICC",
-                                                    color: buttonColor,
-                                                    onPressed: () =>
-                                                        _selectField(
-                                                          AnthroField.whr,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
+                                //     if (state is AnthroFieldListLoaded) {
+                                //       if (state.data == null ||
+                                //           state.data!.isEmpty) {
+                                //         return const SizedBox(
+                                //           child: Text("No data"),
+                                //         );
+                                //       }
+                                //       return SizedBox(
+                                //         height: 200,
+                                //         width: 200,
+                                //         child: Text(state.data.toString()),
+                                //       );
+                                //     }
 
-                                              SizedBox(
-                                                height: context.spacing.lg,
-                                              ),
+                                //     return const SizedBox(height: 40);
+                                //   },
+                                // ),
 
-                                              CustomDataChart(
-                                                type: ChartType.bar,
-                                                title: titleForSelectedField(
-                                                  _selectedField,
-                                                ),
+                                // const SizedBox(height: 30),
+                                // ElevatedButton(
+                                //   onPressed: () => Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //       builder: (context) =>
+                                //           AllAnthroRecordsPage(),
+                                //     ),
+                                //   ),
+                                //   child: Text("Todos los records"),
+                                // ),
+                              ],
+                            ),
+                          );
+                        }
 
-                                                times: data
-                                                    .map((s) => s.registeredAt)
-                                                    .toList(),
-
-                                                values: valuesForSelectedField(
-                                                  data,
-                                                  _selectedField,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                      return SizedBox();
-                                    },
-                                  ),
-
-                                  SizedBox(height: context.spacing.lg),
-
-                                  // const SizedBox(height: 20),
-
-                                  // BlocBuilder<GetAnthroByFieldBloc, AnthroState>(
-                                  //   builder: (context, state) {
-                                  //     if (state is AnthroLoading) {
-                                  //       return const CircularProgressIndicator();
-                                  //     }
-
-                                  //     if (state is AnthroFieldListLoaded) {
-                                  //       if (state.data == null ||
-                                  //           state.data!.isEmpty) {
-                                  //         return const SizedBox(
-                                  //           child: Text("No data"),
-                                  //         );
-                                  //       }
-                                  //       return SizedBox(
-                                  //         height: 200,
-                                  //         width: 200,
-                                  //         child: Text(state.data.toString()),
-                                  //       );
-                                  //     }
-
-                                  //     return const SizedBox(height: 40);
-                                  //   },
-                                  // ),
-
-                                  // const SizedBox(height: 30),
-                                  // ElevatedButton(
-                                  //   onPressed: () => Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //       builder: (context) =>
-                                  //           AllAnthroRecordsPage(),
-                                  //     ),
-                                  //   ),
-                                  //   child: Text("Todos los records"),
-                                  // ),
-                                ],
-                              ),
-                            );
-                          }
-
-                          return const SizedBox();
-                        },
-                      ),
-                    ],
-                  ),
+                        return const SizedBox();
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
