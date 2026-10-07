@@ -14,6 +14,7 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_state.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/anthropometrics/register_anthro_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/screens/profile/profile_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/records/anthropometrics/anthro_full_list_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/helpers/fomaters.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
@@ -61,7 +62,7 @@ class AnthroRecordsPage extends StatelessWidget {
             checkRecentAnthroUseCase: CheckRecentAnthroUseCase(
               AnthroLocalStorage(),
               CurrentUserSession(),
-              MemberLocalRepo()
+              MemberLocalRepo(),
             ),
           )),
         ),
@@ -250,8 +251,11 @@ class _AnthroRecordsPageState extends State<_AnthroRecordsPage> {
                               mainAxisAlignment: .start,
                               children: [
                                 RecordListPaginator(
-                                  title: formatDateWithWord(current.registeredAt!),
-                                  subtitle: 'Registro ${_index + 1} de ${records.length}',
+                                  title: formatDateWithWord(
+                                    current.registeredAt!,
+                                  ),
+                                  subtitle:
+                                      'Registro ${_index + 1} de ${records.length}',
                                   hasPrevious: _hasPrevious,
                                   hasNext: _hasNext,
                                   onPrevious: _goPrevious,
@@ -354,6 +358,39 @@ class _AnthroRecordsPageState extends State<_AnthroRecordsPage> {
                                                           .key, // 'Peso', 'SMM', etc.
                                                     ),
                                                   ),
+                                                SizedBox(
+                                                  height: context.spacing.sm,
+                                                ),
+
+                                                Column(
+                                                  children: [
+                                                    CustomTextWidget(
+                                                      label:
+                                                          "Para una evaluación precisa ingresa tu sexo en ",
+                                                      fontSize: context
+                                                          .fontsSize
+                                                          .details,
+                                                    ),
+                                                    SizedBox(height: context.spacing.xs,),
+                                                    GestureDetector(
+                                                      onTap: () => Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              const ProfileMainPage(),
+                                                        ),
+                                                      ),
+                                                      child: CustomTextWidget(
+                                                        label:
+                                                            "Datos personales",
+                                                        fontSize: context
+                                                            .fontsSize
+                                                            .details,
+                                                            color: context.colors.low,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
 
                                                 SizedBox(
                                                   height: context.spacing.lg,

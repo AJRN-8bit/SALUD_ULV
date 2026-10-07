@@ -18,20 +18,22 @@ bool countStep({
 
 {
   double alpha = 0.8;
-  double dynamicThreshold = 3.5;
-  final int stepCoolDownSeconds = 350;
+  double dynamicThreshold = 2.5;
+  final int stepCoolDownSeconds = 300;
+  bool step = false;
 
   final x = accelerometerData[0];
   final y = accelerometerData[1];
   final z = accelerometerData[2];
 
 
-  final magnitude = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+  final magnitude = sqrt(x * x + y * y + z * z);
 
   smoothMagnitude = (alpha * smoothMagnitude) + ((1-alpha) * magnitude);
 
   // debugPrint('Last Magnitude: $smoothMagnitude');
   final double avg = accelerometerData.reduce((a,b) => a + b) / accelerometerData.length;
+
 
   final double stepDynamicThreshold = avg + dynamicThreshold;
   // debugPrint('Dynamic threshold: $stepDynamicThreshold');
@@ -47,11 +49,171 @@ bool countStep({
     // debugPrint('Step cool down: $stepCoolDown');
         // debugPrint('Step detected');
         lastTimeStamp = now;
-        return true; // step detected
+        step = true;
+        return step; // step detected
     }
 
-  return false; // no step
+    debugPrint(
+  'ACCEL '
+  'x=${x.toStringAsFixed(3)} '
+  'y=${y.toStringAsFixed(3)} '
+  'z=${z.toStringAsFixed(3)} '
+  'magnitude=${magnitude.toStringAsFixed(3)} '
+  'smooth=${smoothMagnitude.toStringAsFixed(3)} '
+  'threshold=${stepDynamicThreshold.toStringAsFixed(3)} '
+  'step=$step',
+);
+
+  return step; // no step
 }
+
+
+// DateTime? lastStepTime;
+
+// double smoothMagnitude = 0.0;
+// double magnitudeBaseline = 0.0;
+
+// bool countStep({
+//   required List<double> accelerometerData,
+// }) {
+//   const double smoothAlpha = 0.8;
+//   const double baselineAlpha = 0.95;
+//   const double dynamicThreshold = 1.0;
+
+//   const int minStepIntervalMs = 350;
+//   const int maxStepIntervalMs = 1000;
+
+//   final x = accelerometerData[0];
+//   final y = accelerometerData[1];
+//   final z = accelerometerData[2];
+
+//   // Magnitud del movimiento.
+//   final magnitude = sqrt(
+//     x * x +
+//     y * y +
+//     z * z,
+//   );
+
+//   // Suavizado.
+//   smoothMagnitude =
+//       smoothAlpha * smoothMagnitude +
+//       (1 - smoothAlpha) * magnitude;
+
+//   // Nivel normal del dispositivo.
+//   magnitudeBaseline =
+//       baselineAlpha * magnitudeBaseline +
+//       (1 - baselineAlpha) * smoothMagnitude;
+
+//   // Movimiento relativo al nivel normal.
+//   final movementSignal =
+//       smoothMagnitude - magnitudeBaseline;
+
+//   final now = DateTime.now();
+
+//   bool validInterval = true;
+
+//   if (lastStepTime != null) {
+//     final elapsedMs =
+//         now.difference(lastStepTime!).inMilliseconds;
+
+//     validInterval =
+//         elapsedMs >= minStepIntervalMs &&
+//         elapsedMs <= maxStepIntervalMs;
+//   }
+
+//   final isPeak =
+//       movementSignal > dynamicThreshold;
+
+//   final stepDetected =
+//       isPeak && validInterval;
+
+//   debugPrint(
+//     'ACCEL '
+//     'mag=${magnitude.toStringAsFixed(3)} '
+//     'smooth=${smoothMagnitude.toStringAsFixed(3)} '
+//     'baseline=${magnitudeBaseline.toStringAsFixed(3)} '
+//     'signal=${movementSignal.toStringAsFixed(3)} '
+//     'threshold=$dynamicThreshold '
+//     'intervalValid=$validInterval '
+//     'step=$stepDetected',
+//   );
+
+//   if (stepDetected) {
+//     lastStepTime = now;
+//     return true;
+//   }
+
+//   return false;
+// }
+
+
+
+
+
+// double smoothMagnitude = 0.0;
+// double baseline = 0.0;
+
+// DateTime lastStepTime =
+//     DateTime.fromMillisecondsSinceEpoch(0);
+
+// bool countStep({
+//   required List<double> accelerometerData,
+// }) {
+//   const smoothAlpha = 0.8;
+//   const baselineAlpha = 0.95;
+//   const threshold = 0.8;
+//   bool step = false;
+
+//   final x = accelerometerData[0];
+//   final y = accelerometerData[1];
+//   final z = accelerometerData[2];
+
+//   final magnitude = sqrt(
+//     x * x +
+//     y * y +
+//     z * z,
+//   );
+
+//   // Suavizar señal
+//   smoothMagnitude =
+//       smoothAlpha * smoothMagnitude +
+//       (1 - smoothAlpha) * magnitude;
+
+//   // Aprender el nivel normal del teléfono
+//   baseline =
+//       baselineAlpha * baseline +
+//       (1 - baselineAlpha) * smoothMagnitude;
+
+//   // Cuánto sobresale la señal respecto al baseline
+//   final signal = smoothMagnitude - baseline;
+
+//   final now = DateTime.now();
+
+//   final enoughTime =
+//       now.difference(lastStepTime) >
+//       const Duration(milliseconds: 300);
+
+//   debugPrint(
+//   'ACCEL '
+//   'x=${x.toStringAsFixed(3)} '
+//   'y=${y.toStringAsFixed(3)} '
+//   'z=${z.toStringAsFixed(3)} '
+//   'magnitude=${magnitude.toStringAsFixed(3)} '
+//   'smooth=${smoothMagnitude.toStringAsFixed(3)} '
+//   'threshold=$enoughTime '
+//   'step=$step',
+// );
+
+
+//   if (signal > threshold && enoughTime) {
+//     lastStepTime = now;
+//     step = true;
+//     return step;
+//   }
+
+//   return step;
+// }
+
 
 
 
@@ -88,13 +250,22 @@ double avgCalculator(List<num> values) {
   return (sum / values.length);
 }
 
-double calculateCaloriesBurned(Duration time, int met, double bodyWeight) {
+double calculateCaloriesBurned(Duration time, double met, double bodyWeight) {
   // Time needs to be in minutes for the standard MET formula
   final double minutes = time.inSeconds / 60.0;
   
   final double calories = (minutes * met * bodyWeight) / 200;
   
   return calories;
+}
+
+double maxValue(Iterable<double> values, {double fallback = 0}) {
+  double? max;
+  for (final v in values) {
+    if (!v.isFinite) continue;
+    if (max == null || v > max) max = v;
+  }
+  return max ?? fallback;
 }
 
 double calculateStepsPerMinute(int steps, Duration time) {

@@ -34,11 +34,11 @@ class AerobicExerciseSummary extends IExerciseSummary {
   });
 }
 
-class WalkExerciseSummary extends AerobicExerciseSummary {
-  WalkExerciseSummary({
-    required super.recordCount,
-    required super.startDate,
-    required super.endDate,
-    required super.metrics,
-  });
-}
+// class WalkExerciseSummary extends AerobicExerciseSummary {
+//   WalkExerciseSummary({
+//     required super.recordCount,
+//     required super.startDate,
+//     required super.endDate,
+//     required super.metrics,
+//   });
+// }

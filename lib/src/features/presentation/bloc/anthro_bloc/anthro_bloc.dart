@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:salud_ulv_app/src/core/repositories/use-cases/anthropometric_usecase.dart';
-import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_bycode_admin_usecase.dart';
+// import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_bycode_admin_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/anthropometrics/get_byfield_usecase.dart';
-import 'package:salud_ulv_app/src/core/usecase/anthropometrics/getall_admin_usecase.dart';
+// import 'package:salud_ulv_app/src/core/usecase/anthropometrics/getall_admin_usecase.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/anthro_bloc/anthro_state.dart';
 
@@ -138,76 +138,76 @@ class SendAnhroBloc extends Bloc<AnthroEvent, AnthroState> {
 }
 
 // Admin
-class AnthroGetAllAdminBloc extends Bloc<AnthroEvent, AnthroState> {
-  final GetallAnthroAdminUsecase getallAnthroUsecase;
+// class AnthroGetAllAdminBloc extends Bloc<AnthroEvent, AnthroState> {
+//   final GetallAnthroAdminUsecase getallAnthroUsecase;
 
-  AnthroGetAllAdminBloc({required this.getallAnthroUsecase})
-    : super(AnthroInitial()) {
-    on<AnthroGetAllEvent>(_getAll);
-  }
+//   AnthroGetAllAdminBloc({required this.getallAnthroUsecase})
+//     : super(AnthroInitial()) {
+//     on<AnthroGetAllEvent>(_getAll);
+//   }
 
-  Future<void> _getAll(
-    AnthroGetAllEvent event,
-    Emitter<AnthroState> emit,
-  ) async {
-    try {
-      emit(AnthroLoading());
-      final data = await getallAnthroUsecase.execute();
-      emit(AnthroListLoaded(data));
-    } catch (e) {
-      emit(AnthroError("Couldn't get data"));
-    }
-  }
-}
+//   Future<void> _getAll(
+//     AnthroGetAllEvent event,
+//     Emitter<AnthroState> emit,
+//   ) async {
+//     try {
+//       emit(AnthroLoading());
+//       final data = await getallAnthroUsecase.execute();
+//       emit(AnthroListLoaded(data));
+//     } catch (e) {
+//       emit(AnthroError("Couldn't get data"));
+//     }
+//   }
+// }
 
-class AnthroGetByUserCodeBloc extends Bloc<AnthroEvent, AnthroState> {
-  final IGetByUserCodeAdminUseCase getByUserCodeUsecase;
+// class AnthroGetByUserCodeBloc extends Bloc<AnthroEvent, AnthroState> {
+//   final IGetByUserCodeAdminUseCase getByUserCodeUsecase;
 
-  AnthroGetByUserCodeBloc({required this.getByUserCodeUsecase})
-    : super(AnthroInitial()) {
-    on<AnthroGetByUserCodeEvent>(_getByCode);
-  }
+//   AnthroGetByUserCodeBloc({required this.getByUserCodeUsecase})
+//     : super(AnthroInitial()) {
+//     on<AnthroGetByUserCodeEvent>(_getByCode);
+//   }
 
-  Future<void> _getByCode(
-    AnthroGetByUserCodeEvent event,
-    Emitter<AnthroState> emit,
-  ) async {
-    try {
-      emit(AnthroLoading());
-      final data = await getByUserCodeUsecase.execute(event.userCode);
-      emit(AnthroListLoaded(data));
-    } catch (e) {
-      emit(AnthroError("Couldn't get data"));
-    }
-  }
-}
+//   Future<void> _getByCode(
+//     AnthroGetByUserCodeEvent event,
+//     Emitter<AnthroState> emit,
+//   ) async {
+//     try {
+//       emit(AnthroLoading());
+//       final data = await getByUserCodeUsecase.execute(event.userCode);
+//       emit(AnthroListLoaded(data));
+//     } catch (e) {
+//       emit(AnthroError("Couldn't get data"));
+//     }
+//   }
+// }
 
-class AnthroGetDataAdminBloc extends Bloc<AnthroEvent, AnthroState> {
-  final GetallAnthroAdminUsecase getallAnthroUsecase;
-  final GetByUserCodeUsecase getByUserCodeUsecase;
+// class AnthroGetDataAdminBloc extends Bloc<AnthroEvent, AnthroState> {
+//   final GetallAnthroAdminUsecase getallAnthroUsecase;
+//   final GetByUserCodeUsecase getByUserCodeUsecase;
 
-  AnthroGetDataAdminBloc({
-    required this.getByUserCodeUsecase,
-    required this.getallAnthroUsecase,
-  }) : super(AnthroInitial()) {
-    on<AnthroGetAllEvent>((event, emit) async {
-      try {
-        emit(AnthroLoading());
-        final data = await getallAnthroUsecase.execute();
-        emit(AnthroListLoaded(data));
-      } catch (e) {
-        emit(AnthroError("Couldn't get data"));
-      }
-    });
+//   AnthroGetDataAdminBloc({
+//     required this.getByUserCodeUsecase,
+//     required this.getallAnthroUsecase,
+//   }) : super(AnthroInitial()) {
+//     on<AnthroGetAllEvent>((event, emit) async {
+//       try {
+//         emit(AnthroLoading());
+//         final data = await getallAnthroUsecase.execute();
+//         emit(AnthroListLoaded(data));
+//       } catch (e) {
+//         emit(AnthroError("Couldn't get data"));
+//       }
+//     });
 
-    on<AnthroGetByUserCodeEvent>((event, emit) async {
-      try {
-        emit(AnthroLoading());
-        final data = await getByUserCodeUsecase.execute(event.userCode);
-        emit(AnthroListLoaded(data));
-      } catch (e) {
-        emit(AnthroError("Couldn't get data"));
-      }
-    });
-  }
-}
+//     on<AnthroGetByUserCodeEvent>((event, emit) async {
+//       try {
+//         emit(AnthroLoading());
+//         final data = await getByUserCodeUsecase.execute(event.userCode);
+//         emit(AnthroListLoaded(data));
+//       } catch (e) {
+//         emit(AnthroError("Couldn't get data"));
+//       }
+//     });
+//   }
+// }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:salud_ulv_app/src/features/presentation/shared/themes/fonts_size.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/shadows.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -58,9 +59,9 @@ class MapWidget extends StatelessWidget {
         initialCameraFit: initialFit(),
         // Only used if there is no route
         initialCenter: startPoint ?? const LatLng(0, 0),
-        initialZoom: 12,
+        initialZoom: 20,
         minZoom: 3,
-        maxZoom: 22,
+        maxZoom: 28,
         onMapReady: mapReady,
 
         interactionOptions: InteractionOptions(
@@ -140,8 +141,9 @@ class MapWidget extends StatelessWidget {
         if(showCurrentLocation)
         CurrentLocationLayer(
           style: LocationMarkerStyle(
-            marker: DefaultLocationMarker(child: Icon(Icons.location_pin)),
-            markerSize: Size(20, 20),
+            markerAlignment: .center,
+            marker: DefaultLocationMarker(child: Icon(Icons.location_pin, color: context.colors.primary,)),
+            markerSize: Size(15, 15),
             markerDirection: .heading,
           ),
         
@@ -166,10 +168,11 @@ class _RoutePin extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: context.shadows.smBoxShadow,
       ),
-      child: Icon(icon, color: Colors.white, size: 18),
+      child: Icon(icon, color: Colors.white, size: context.fontsSize.body),
     );
   }
 }
+
 
 void fitRouteToScreen(List<LatLng> routePoints, MapController mapController) {
   if (routePoints.isEmpty) return;

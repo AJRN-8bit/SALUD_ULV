@@ -145,7 +145,7 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
                           SizedBox(height: context.spacing.sm),
                           CustomTextWidget(
                             label:
-                                'Si no conoces tus datos, acercate al departamento de Nutrición ULV para tu medición corporal',
+                                'Si no conoces tus datos, acercate a estos departamentos para tu medición corporal',
                             fontSize: context.fontsSize.caption,
                           ),
 
@@ -212,6 +212,7 @@ class _RegisterAnthroPageState extends State<_RegisterAnthroPage> {
                                   controller: _bodyFatPercentController,
                                   suffix: ' %',
                                   title: 'Porcentaje de grasa',
+                                  step: 0.1,
                                   
                                 ),
                                 SizedBox(height: context.spacing.lg),

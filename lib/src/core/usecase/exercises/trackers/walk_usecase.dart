@@ -10,9 +10,7 @@ import 'package:salud_ulv_app/src/core/repositories/services/location_permission
 import 'package:salud_ulv_app/src/core/services/error_handlers.dart';
 import 'package:salud_ulv_app/src/core/services/exercise_services.dart';
 import 'package:salud_ulv_app/src/core/repositories/use-cases/excercise_usecases.dart';
-// import 'package:salud_ulv_app/src/core/data/source/local/sensors/accelerometer_sensor.dart';
-// import 'package:salud_ulv_app/src/core/data/source/local/sensors/geolocator_sensor.dart';
-// import 'package:salud_ulv_app/src/features/services/location_permition.dart';
+import 'package:salud_ulv_app/src/core/services/step_counter.dart';
 import 'package:uuid/uuid.dart';
 
 class WalkActivityUsecase
@@ -34,21 +32,32 @@ class WalkActivityUsecase
     this.locationPermissionService,
   );
 
+  // categoryID de Walk en ActivityCategory
+  static const int _categoryID = 1;
+
+  // MET aproximado para caminata a ritmo moderado (~3.5)
+  static const double _walkingMet = 3.5;
+  static const double _weightKg = 70;
+
+  // Por encima de esta velocidad (m/s) no se cuentan pasos de caminata:
+  // ya sería trote/carrera o ruido del GPS.
+  static const double _maxStepSpeed = 2.5;
+
   final ExerciseTimer _timer = ExerciseTimer();
 
   static int _instanceCount = 0;
   final int _instanceId = ++_instanceCount;
 
+  final StepDetector _stepCounter = StepDetector();
+
   String? _activityID;
   String? _userUUID;
-  // late DateTime date;
   DateTime date = DateTime.now().toUtc();
 
   String get activityID {
     if (_activityID == null) {
       throw StateError('Activity has not started');
     }
-
     return _activityID!;
   }
 
@@ -58,17 +67,6 @@ class WalkActivityUsecase
   bool _snapshotBusy = false;
   bool _isPaused = false;
   int _steps = 0;
-  DateTime? _minuteStart;
-
-  final double _caloriesBurned = 0.0;
-  // int _lastSnapshotSteps = 0;
-  // double _lastSnapshotDistance = 0.0;
-  // double _lastSnapshotElevation = 0.0;
-  // // double _lastSnapshotCadence = 0.0;
-  // // double _lastSnapshotPace = 0.0;
-  // // double _lastSnapshotSpeed = 0.0;
-  // double _lastSnapshotCaloriesBurned = 0.0;
-  // // Duration _lastSnapshotElapsed =
 
   int _lastSnapshotSteps = 0;
   double _lastSnapshotDistance = 0.0;
@@ -88,11 +86,15 @@ class WalkActivityUsecase
   double? get distance => geolocatorSensor.distance;
 
   @override
-  double? get caloriesBurned => _caloriesBurned;
+  double? get caloriesBurned {
+    final e = elapsed;
+    if (e == null) return 0;
+    return calculateCalories(elapsed: e, weightKg: _weightKg, met: _walkingMet);
+  }
 
   @override
   int? get steps => _steps;
-  // double get calories => _calories;
+
   bool get isPaused => _timer.isPaused;
 
   @override
@@ -114,68 +116,52 @@ class WalkActivityUsecase
     );
   }
 
-  // double get avgSpeed => geolocatorSensor.avgSpeed;
-  // double get elevationGain => geolocatorSensor.elevationGain;
-
   @override
   Future<void> start() async {
-    // 1. Validate everything BEFORE creating an ID, so a failed start
-    //    never leaves a half-initialized activity.
+    // 1. Validar todo ANTES de crear un ID.
     await locationPermissionService.request();
     final locationGranted = await locationPermissionService.isGranted();
     if (!locationGranted) return;
- 
+
     final userUUID = await currentUserSession.getCurrentUserUUID();
     if (userUUID == null) return;
- 
-    // 2. Fresh state
+
+    // 2. Estado limpio
     _activityID = const Uuid().v4().toUpperCase();
-    
     _userUUID = userUUID;
     debugPrint('WalkID: $activityID');
- 
+
     _steps = 0;
     _isPaused = false;
-    // _snapshotBusy = false;
     _lastSnapshotSteps = 0;
     _lastSnapshotDistance = 0.0;
     _lastSnapshotElevation = 0.0;
     _lastSnapshotCaloriesBurned = 0.0;
     _lastSnapshotElapsed = Duration.zero;
- 
-    // 3. Create the DB row. The repo must insert it with status = 0
-    //    (in progress) so interrupted walks can be recovered later.
-    await exerciseLocalRepo.setIDs(activityID, userUUID, 1, date);
 
-    _minuteStart = DateTime.now();
+    // 3. Crear la fila en BD
+    await exerciseLocalRepo.setIDs(activityID, userUUID, _categoryID, date);
 
-    await geolocatorSensor.start(2, 4, 1); // geolocator initial
+    await geolocatorSensor.start(1, 4, 1);
     await accelerometerSensor.start();
 
-    // final accelStream = streamSpeedReductor(accelerometerSensor.magnitude, 100);
-    final accelStream = accelerometerSensor.magnitude;
-
+    final accelStream = streamSpeedReductor(accelerometerSensor.magnitude, 50);
 
     _accelSub = accelStream.listen((raw) {
-      final step = countStep(accelerometerData: raw!);
+      final step = _stepCounter.update(raw!);
 
-      // if (step &&
-      //     geolocatorSensor.hasMovement &&
-      //     geolocatorSensor.speed < 2.5) {
-      //   _steps++;
-      // }
-
-      if (step && geolocatorSensor.speed < 2.5) {
-  _steps++;
-}
-
+      if (step &&
+          geolocatorSensor.hasMovement &&
+          geolocatorSensor.speed < _maxStepSpeed) {
+        _steps++;
+      }
     });
 
     _timer.start();
     _startSnapshotTimer();
   }
 
-   @override
+  @override
   void pause() {
     _isPaused = true;
     geolocatorSensor.pause();
@@ -184,7 +170,7 @@ class WalkActivityUsecase
     _timer.pause();
     _snapshotTimer?.cancel();
   }
- 
+
   @override
   void resume() {
     _isPaused = false;
@@ -194,27 +180,26 @@ class WalkActivityUsecase
     _timer.resume();
     _startSnapshotTimer();
   }
- 
+
   @override
   void reset() {
-    // Cancel the timer first so a late tick can't read reset values.
+    // Cancelar el timer primero para que un tick tardío no lea valores reseteados.
     _snapshotTimer?.cancel();
     _snapshotTimer = null;
- 
+
     accelerometerSensor.reset();
     geolocatorSensor.reset();
-    _minuteStart = null;
     _timer.reset();
     _steps = 0;
     _isPaused = false;
- 
+
     _lastSnapshotSteps = 0;
     _lastSnapshotDistance = 0.0;
     _lastSnapshotElevation = 0.0;
     _lastSnapshotCaloriesBurned = 0.0;
     _lastSnapshotElapsed = Duration.zero;
   }
- 
+
   // ---------------------------------------------------------------------------
   // STOP / DISCARD
   // ---------------------------------------------------------------------------
@@ -227,18 +212,18 @@ class WalkActivityUsecase
     await _accelSub?.cancel();
     _accelSub = null;
   }
- 
+
   @override
   Future<void> stopAndSave() async {
     await _stopEverything();
     reset();
   }
- 
+
   @override
   Future<void> discard() async {
     await _stopEverything();
- 
-    // Nothing to delete if start() never got as far as creating the row.
+
+    // Nada que borrar si start() nunca llegó a crear la fila.
     final id = _activityID;
     if (id != null) {
       try {
@@ -248,11 +233,12 @@ class WalkActivityUsecase
           await exerciseLocalRepo.delete(userUUID, id);
         }
         await aerobicSampleRepo.delete(id);
+        debugPrint('cleanup successful ');
       } catch (e) {
         debugPrint('discard() cleanup failed: $e');
       }
     }
- 
+
     reset();
   }
 
@@ -260,36 +246,30 @@ class WalkActivityUsecase
   Future<void> save() async {
     pause();
 
-    if (elapsed!.inSeconds < 10 || steps == 0 || steps == null) {
-      discard();
+    final currentElapsed = elapsed;
+    final currentSteps = steps;
+
+    if (currentElapsed == null ||
+        currentElapsed.inSeconds < 10 ||
+        currentSteps == null ||
+        currentSteps == 0) {
+      await discard();
       throw ExerciseValidationException(
         'No es posible guardar actividades menores a 10 segundos o sin pasos realizados',
       );
-    } // this prevents the user from saving short time activities
+    }
 
     final sampleData = await aerobicSampleRepo.getSamples(activityID);
     if (sampleData == null || sampleData.isEmpty) {
-      discard();
+      await discard();
       throw ExerciseValidationException(
         'No hay datos suficientes para guardar esta actividad',
       );
     }
 
-    debugPrint('conditionals not passed');
-
-    // final userUUID = await currentUserSession.getCurrentUserUUID();
-    // if (userUUID == null) return;
-
-
     final stepsList = sampleData
         .map((sample) => sample.steps)
         .whereType<int>()
-        .toList();
-
-    final cadenceList = sampleData
-        .map((sample) => sample.cadence)
-        .whereType<double>()
-        .where((value) => value.isFinite)
         .toList();
 
     final paceList = sampleData
@@ -298,48 +278,35 @@ class WalkActivityUsecase
         .where((value) => value.isFinite)
         .toList();
 
-    // final distanceList = sampleData
-    //     .map((sample) => sample.distance)
-    //     .whereType<double>()
-    //     .toList();
-
     final elevationList = sampleData
         .map((sample) => sample.elevation)
         .whereType<double>()
         .toList();
 
-    // debugPrint('Steps list: ${stepsList.toString()}');
-    // debugPrint('Steps list: ${paceList.toString()}');
     debugPrint('Making walk class');
 
     final walkData = Walk(
       activityID: activityID,
-
-      duration: elapsed ?? Duration(seconds: 1),
-
+      duration: currentElapsed,
       distance: distance ?? 0,
-
-      caloriesBurned: calculateCaloriesBurned(elapsed!, 2, 70),
-
-      elevationGain: elevationList.isEmpty ? 0 : totalElevationGain(elevationList) ,
-
-      avgCadence: calculateStepsPerMinute(steps!, elapsed!),
-
+      caloriesBurned: calculateCaloriesBurned(
+        currentElapsed,
+        _walkingMet,
+        _weightKg,
+      ),
+      elevationGain:
+          elevationList.isEmpty ? 0 : totalElevationGain(elevationList),
+      avgCadence: calculateStepsPerMinute(currentSteps, currentElapsed),
       avgPace: paceList.isEmpty ? 0 : avgCalculator(paceList),
-
-      steps: steps ?? 0,
-      // steps: 150,
-
+      steps: currentSteps,
       avgSteps: stepsList.isEmpty ? 0 : valueByTime(stepsList, 60),
-
       registeredAt: date,
     );
 
-    debugPrint('Saving walk');
-    debugPrint(walkData.steps.toString());
+    debugPrint('Saving walk: ${walkData.steps}');
 
     await exerciseLocalRepo.save(walkData);
-    stopAndSave();
+    await stopAndSave();
   }
 
   void _startSnapshotTimer() {
@@ -347,10 +314,10 @@ class WalkActivityUsecase
     _snapshotTimer?.cancel();
     _snapshotTimer = Timer.periodic(_snapshotInterval, (_) => _takeSnapshot());
   }
- 
+
   Future<void> _takeSnapshot() async {
     if (_snapshotBusy || _activityID == null) return;
- 
+
     final currentElapsed = elapsed;
     final currentSteps = steps;
     final currentDistance = distance;
@@ -359,34 +326,33 @@ class WalkActivityUsecase
         currentDistance == null) {
       return;
     }
- 
-    // Real length of this interval (the final snapshot in save() is shorter).
+
     final interval = currentElapsed - _lastSnapshotElapsed;
     if (interval.inMilliseconds <= 0) return;
- 
+
     _snapshotBusy = true;
     try {
       final currentElevation = geolocatorSensor.elevation;
- 
+
       final currentCalories = calculateCalories(
         elapsed: currentElapsed,
-        weightKg: 70,
-        met: 2,
+        weightKg: _weightKg,
+        met: _walkingMet,
       );
- 
-      // Deltas from the previous cumulative values
+
+      // Deltas respecto a los acumulados previos
       final stepsDelta = currentSteps - _lastSnapshotSteps;
       final distanceDelta = currentDistance - _lastSnapshotDistance;
       final elevationDelta = currentElevation - _lastSnapshotElevation;
       final caloriesDelta = currentCalories - _lastSnapshotCaloriesBurned;
- 
-      // Rates for this interval
+
+      // Tasas del intervalo
       final cadence = calculateCadence(stepsDelta, interval);
       final pace = geolocatorSensor.hasMovement
           ? calculatePace(interval, distanceDelta)
           : 0.0;
-      final speed = geolocatorSensor.speed;
- 
+      final currentSpeed = geolocatorSensor.speed;
+
       final snapshotData = WalkActivitySample(
         activityID: activityID,
         timestampMs: currentElapsed,
@@ -396,39 +362,31 @@ class WalkActivityUsecase
         elevation: elevationDelta,
         cadence: cadence,
         pace: pace,
-        speed: speed,
+        speed: currentSpeed,
         heartRate: 0,
         latitude: geolocatorSensor.latitude,
         longitude: geolocatorSensor.longitude,
       );
- 
+
       await aerobicSampleRepo.save(snapshotData);
- 
-      // // Checkpoint: keep the WalkActivity header row in sync, so if the
-      // // app is killed the walk row and its samples are consistent.
-      // await exerciseLocalRepo.updateProgress(
-      //   activityID: activityID,
-      //   elapsed: currentElapsed,
-      //   steps: currentSteps,
-      //   distance: currentDistance,
-      //   caloriesBurned: currentCalories,
-      // );
- 
+
       _lastSnapshotSteps = currentSteps;
       _lastSnapshotDistance = currentDistance;
       _lastSnapshotElevation = currentElevation;
       _lastSnapshotCaloriesBurned = currentCalories;
       _lastSnapshotElapsed = currentElapsed;
- 
+
       debugPrint(
         'Snapshot saved: activityID=$activityID steps=$stepsDelta '
         'distance=$distanceDelta calories=$caloriesDelta '
-        'cadence=$cadence pace=$pace speed=$speed elapsed=$currentElapsed',
+        'cadence=$cadence pace=$pace speed=$currentSpeed '
+        'elapsed=$currentElapsed',
       );
     } catch (e, st) {
-      // A failed snapshot must never crash the tracking session.
+      // Un snapshot fallido nunca debe tumbar la sesión de tracking.
       debugPrint('Snapshot failed: $e\n$st');
-    } finally {
+    }
+    finally {
       _snapshotBusy = false;
     }
   }

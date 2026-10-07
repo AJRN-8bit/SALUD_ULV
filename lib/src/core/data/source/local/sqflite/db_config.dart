@@ -19,7 +19,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onUpgrade: (db, oldVersion, newVersion) {},
 
       onConfigure: (db) async {
@@ -93,6 +93,10 @@ class AppDatabase {
           'categoryName': 'strength',
         });
 
+
+
+
+
         await db.execute('''
         CREATE TABLE WalkActivity (
           activityID TEXT PRIMARY KEY NOT NULL,
@@ -152,6 +156,134 @@ class AppDatabase {
         CREATE INDEX idx_WalkActivitySample_activity_timestamp
         ON WalkActivitySample(activityID, timestamp_ms)
       ''');
+
+
+
+
+      await db.execute('''
+        CREATE TABLE RunningActivity (
+          activityID TEXT PRIMARY KEY NOT NULL,
+          userUUID TEXT NOT NULL,
+          categoryID INTEGER NOT NULL REFERENCES ActivityCategory(categoryID),
+          registeredAt TEXT NOT NULL,
+
+          duration_ms INTEGER DEFAULT 0,
+          caloriesBurned REAL DEFAULT 0,
+
+          distance REAL DEFAULT 0,
+          avgPace REAL DEFAULT 0,
+          elevationGain REAL DEFAULT 0,
+          avgCadence REAL DEFAULT 0,
+          heartRate REAL DEFAULT 0,
+
+          speed REAL DEFAULT 0,
+          avgSpeed REAL DEFAULT 0,
+
+          isSynced INTEGER NOT NULL DEFAULT 0,
+
+          FOREIGN KEY (userUUID) REFERENCES Users (userUUID) ON DELETE CASCADE
+        )
+      '''); // Steps is null to allow devices with no accelerometer
+
+        await db.execute('''
+        CREATE INDEX idx_RunningActivity_activity_useruuid
+        ON RunningActivity(activityID, userUUID)
+      ''');
+
+        // Exercise cache
+        // Steps just for walking
+        await db.execute('''
+        CREATE TABLE RunningActivitySample (
+          sampleID INTEGER PRIMARY KEY AUTOINCREMENT,
+          activityID TEXT NOT NULL,
+
+          timestamp_ms INTEGER DEFAULT 0,
+
+          heartRate INTEGER DEFAULT 0,
+          distance REAL DEFAULT 0,
+          calories REAL DEFAULT 0,
+          pace REAL DEFAULT 0,
+          speed REAL DEFAULT 0,
+          cadence REAL DEFAULT 0,
+          elevation REAL DEFAULT 0,
+
+          latitude REAL DEFAULT 0,
+          longitude REAL DEFAULT 0,
+
+          FOREIGN KEY (activityID) REFERENCES RunningActivity (activityID) ON DELETE CASCADE
+        )
+      ''');
+
+        await db.execute('''
+        CREATE INDEX idx_RunningActivitySample_activity_timestamp
+        ON RunningActivitySample(activityID, timestamp_ms)
+      ''');
+
+
+
+
+      await db.execute('''
+        CREATE TABLE CyclingActivity (
+          activityID TEXT PRIMARY KEY NOT NULL,
+          userUUID TEXT NOT NULL,
+          categoryID INTEGER NOT NULL REFERENCES ActivityCategory(categoryID),
+          registeredAt TEXT NOT NULL,
+
+          duration_ms INTEGER DEFAULT 0,
+          caloriesBurned REAL DEFAULT 0,
+
+          distance REAL DEFAULT 0,
+          avgPace REAL DEFAULT 0,
+          elevationGain REAL DEFAULT 0,
+          avgElevationGain REAL DEFAULT 0,
+          avgCadence REAL DEFAULT 0,
+          heartRate REAL DEFAULT 0,
+
+          speed REAL DEFAULT 0,
+          avgSpeed REAL DEFAULT 0,
+
+          isSynced INTEGER NOT NULL DEFAULT 0,
+
+          FOREIGN KEY (userUUID) REFERENCES Users (userUUID) ON DELETE CASCADE
+        )
+      '''); // Steps is null to allow devices with no accelerometer
+
+        await db.execute('''
+        CREATE INDEX idx_CyclingActivity_activity_useruuid
+        ON CyclingActivity(activityID, userUUID)
+      ''');
+
+        // Exercise cache
+        // Steps just for walking
+        await db.execute('''
+        CREATE TABLE CyclingActivitySample (
+          sampleID INTEGER PRIMARY KEY AUTOINCREMENT,
+          activityID TEXT NOT NULL,
+
+          timestamp_ms INTEGER DEFAULT 0,
+
+          heartRate INTEGER DEFAULT 0,
+          distance REAL DEFAULT 0,
+          calories REAL DEFAULT 0,
+          pace REAL DEFAULT 0,
+          speed REAL DEFAULT 0,
+          cadence REAL DEFAULT 0,
+          elevation REAL DEFAULT 0,
+
+          latitude REAL DEFAULT 0,
+          longitude REAL DEFAULT 0,
+
+          FOREIGN KEY (activityID) REFERENCES CyclingActivity (activityID) ON DELETE CASCADE
+        )
+      ''');
+
+        await db.execute('''
+        CREATE INDEX idx_CyclingActivitySample_activity_timestamp
+        ON CyclingActivitySample(activityID, timestamp_ms)
+      ''');
+
+
+
       },
     );
   }

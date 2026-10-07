@@ -264,7 +264,7 @@ class _AllWalkRecordsPageState extends State<_AllWalkRecordsPage> {
                                           bottom: context.spacing.sm,
                                         ),
                                         // Replace with your own walk card
-                                        child: WalkCard(walk: walk)
+                                        child: ActivityCard(activity: walk,),
                                       ),
                                   ],
                                 );

@@ -28,6 +28,10 @@ abstract class IStepTrackable {
   int? get steps;
 }
 
+abstract class ISpeedTrackable {
+  double? get speed;
+}
+
 abstract class ILocationTrackable {
   Coordinates? get startLocation;
   Coordinates? get currentLocation; // Like the end position

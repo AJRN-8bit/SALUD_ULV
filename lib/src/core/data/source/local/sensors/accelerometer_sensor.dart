@@ -19,9 +19,9 @@ class AccelerometerSensor implements IAccelerometer{
 
     _sub = userAccelerometerEventStream().listen((UserAccelerometerEvent event) {
       final raw = [
-        event.x.abs(), 
-        event.y.abs(), 
-        event.z.abs()
+        event.x, 
+        event.y, 
+        event.z
         ];
 
       _magniudeController?.add(raw); // Returns raw data

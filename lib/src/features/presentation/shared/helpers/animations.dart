@@ -6,7 +6,7 @@ class AutoScrollAnimation extends StatefulWidget {
   const AutoScrollAnimation({
     super.key,
     required this.builder,
-    this.speed = 40,                                  // pixels per second
+    this.speed =10,                                  // pixels per second
     this.resumeDelay = const Duration(seconds: 3),    // idle time before it resumes
     this.edgePause = const Duration(milliseconds: 800),
     this.enabled = true,

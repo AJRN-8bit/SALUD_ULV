@@ -210,3 +210,175 @@ class WalkActivitySampleDTO extends ActivitySampleDTO {
     );
   }
 }
+
+
+
+
+
+
+
+
+class RunningActivitySampleDTO extends ActivitySampleDTO {
+  RunningActivitySampleDTO({
+    super.sampleID,
+    required super.activityID,
+    required super.timestampMs,
+    super.heartRate,
+    super.distance,
+    super.calories,
+    super.pace,
+    super.speed,
+    super.cadence,
+    super.elevation,
+    super.latitude,
+    super.longitude,
+  });
+
+  factory RunningActivitySampleDTO.fromDomain(
+    RunningActivitySample sample,
+  ) {
+    return RunningActivitySampleDTO(
+      sampleID: sample.sampleID,
+      activityID: sample.activityID,
+      timestampMs: sample.timestampMs,
+      heartRate: sample.heartRate,
+      distance: sample.distance,
+      calories: sample.calories,
+      pace: sample.pace,
+      speed: sample.speed,
+      cadence: sample.cadence,
+      elevation: sample.elevation,
+      latitude: sample.latitude,
+      longitude: sample.longitude,
+    );
+  }
+
+  factory RunningActivitySampleDTO.fromMap(
+    Map<String, dynamic> map,
+  ) {
+    return RunningActivitySampleDTO(
+      sampleID: map['sampleID'] as int?,
+      activityID: map['activityID'] as String,
+      timestampMs: map['timestamp_ms'] != null
+          ? Duration(milliseconds: map['timestamp_ms'] as int)
+          : null,
+
+      heartRate: map['heartRate'] as int?,
+      distance: (map['distance'] as num?)?.toDouble(),
+      calories: (map['calories'] as num?)?.toDouble(),
+
+      pace: (map['pace'] as num?)?.toDouble(),
+      speed: (map['speed'] as num?)?.toDouble(),
+      cadence: (map['cadence'] as num?)?.toDouble(),
+      elevation: (map['elevation'] as num?)?.toDouble(),
+
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+    );
+  }
+
+  // toMap() se hereda de ActivitySampleDTO: no hay columnas extra en
+  // RunningActivitySample, así que no hace falta sobrescribirlo.
+
+  @override
+  RunningActivitySample toDomain() {
+    return RunningActivitySample(
+      sampleID: sampleID,
+      activityID: activityID,
+      timestampMs: timestampMs,
+      heartRate: heartRate,
+      distance: distance,
+      calories: calories,
+      pace: pace,
+      speed: speed,
+      cadence: cadence,
+      elevation: elevation,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+}
+
+
+
+
+
+
+
+class CyclingActivitySampleDTO extends ActivitySampleDTO {
+  CyclingActivitySampleDTO({
+    super.sampleID,
+    required super.activityID,
+    required super.timestampMs,
+    super.heartRate,
+    super.distance,
+    super.calories,
+    super.pace,
+    super.speed,
+    super.cadence,
+    super.elevation,
+    super.latitude,
+    super.longitude,
+  });
+
+  factory CyclingActivitySampleDTO.fromDomain(
+    CyclingActivitySample sample,
+  ) {
+    return CyclingActivitySampleDTO(
+      sampleID: sample.sampleID,
+      activityID: sample.activityID,
+      timestampMs: sample.timestampMs,
+      heartRate: sample.heartRate,
+      distance: sample.distance,
+      calories: sample.calories,
+      pace: sample.pace,
+      speed: sample.speed,
+      cadence: sample.cadence,
+      elevation: sample.elevation,
+      latitude: sample.latitude,
+      longitude: sample.longitude,
+    );
+  }
+
+  factory CyclingActivitySampleDTO.fromMap(
+    Map<String, dynamic> map,
+  ) {
+    return CyclingActivitySampleDTO(
+      sampleID: map['sampleID'] as int?,
+      activityID: map['activityID'] as String,
+      timestampMs: map['timestamp_ms'] != null
+          ? Duration(milliseconds: map['timestamp_ms'] as int)
+          : null,
+
+      heartRate: map['heartRate'] as int?,
+      distance: (map['distance'] as num?)?.toDouble(),
+      calories: (map['calories'] as num?)?.toDouble(),
+
+      pace: (map['pace'] as num?)?.toDouble(),
+      speed: (map['speed'] as num?)?.toDouble(),
+      cadence: (map['cadence'] as num?)?.toDouble(),
+      elevation: (map['elevation'] as num?)?.toDouble(),
+
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+    );
+  }
+
+  @override
+  CyclingActivitySample toDomain() {
+    return CyclingActivitySample(
+      sampleID: sampleID,
+      activityID: activityID,
+      timestampMs: timestampMs,
+      heartRate: heartRate,
+      distance: distance,
+      calories: calories,
+      pace: pace,
+      speed: speed,
+      cadence: cadence,
+      elevation: elevation,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+}

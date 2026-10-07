@@ -6,7 +6,7 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_bloc
 import 'package:salud_ulv_app/src/features/presentation/bloc/auth_bloc/auth_state.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/anthropometrics/get_antrho_admin_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/profile/profile_page.dart';
-import 'package:salud_ulv_app/src/features/presentation/screens/records/get_exercise_admin_page.dart';
+// import 'package:salud_ulv_app/src/features/presentation/screens/records/get_exercise_admin_page.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
@@ -82,15 +82,15 @@ class _HomeTab extends StatelessWidget {
           const Text("Admin Home"),
           const SizedBox(height: 30),
 
-          ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GetAnthroAdminPage())),
-            child: Text("Ver antropometricos")),
+          // ElevatedButton(
+          //   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GetAnthroAdminPage())),
+          //   child: Text("Ver antropometricos")),
 
           const SizedBox(height: 20,),
 
-          ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GetActivityAdminPage())),
-            child: Text("Ver actividades físicas"))
+          // ElevatedButton(
+          //   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GetActivityAdminPage())),
+          //   child: Text("Ver actividades físicas"))
         ],
       ),
     );

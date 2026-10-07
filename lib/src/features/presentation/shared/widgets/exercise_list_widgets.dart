@@ -77,23 +77,82 @@ class RecordListPaginator extends StatelessWidget {
 
 
 
-class WalkCard extends StatelessWidget {
-  const WalkCard({
+class ActivityCard extends StatelessWidget {
+  const ActivityCard({
     super.key,
-    required this.walk,
+    required this.activity,
     this.onTap,
     this.color,
   });
 
-  final Walk walk;
+  final IAerobics activity;
   final VoidCallback? onTap;
   final Color? color;
+
+  // ───────── Configuración por tipo ─────────
+
+  FaIconData get _icon => switch (activity) {
+        Walk() => FontAwesomeIcons.personWalking,
+        Running() => FontAwesomeIcons.personRunning,
+        Cycling() => FontAwesomeIcons.personBiking,
+        _ => FontAwesomeIcons.dumbbell,
+      };
+
+  String get _label => switch (activity) {
+        Walk() => 'Caminata',
+        Running() => 'Carrera',
+        Cycling() => 'Ciclismo',
+        _ => 'Actividad',
+      };
+
+  /// Estadísticas específicas del tipo, después de distancia y duración.
+  List<_StatData> get _extraStats {
+    final a = activity;
+    return switch (a) {
+      Walk() => [
+          _StatData(FontAwesomeIcons.shoePrints, '${a.steps ?? 0} pasos'),
+        ],
+      Running() => [
+          _StatData(FontAwesomeIcons.gaugeHigh, _formatPace(a.avgPace)),
+        ],
+      Cycling() => [
+          _StatData(
+            FontAwesomeIcons.gaugeHigh,
+            '${((a.avgSpeed ?? 0) * 3.6).toStringAsFixed(1)} km/h',
+          ),
+        ],
+      _ => const [],
+    };
+  }
+
+  /// avgPace está en min/km (ej. 5.5 -> 5:30 /km).
+  String _formatPace(double? pace) {
+    if (pace == null || pace <= 0) return '--:-- /km';
+    final minutes = pace.floor();
+    final seconds = ((pace - minutes) * 60).round();
+    // Evita "5:60" cuando el redondeo sube a 60.
+    final m = seconds == 60 ? minutes + 1 : minutes;
+    final s = seconds == 60 ? 0 : seconds;
+    return '$m:${s.toString().padLeft(2, '0')} /km';
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final spacing = context.spacing;
     final textTheme = Theme.of(context).textTheme;
+
+    final stats = <_StatData>[
+      _StatData(
+        FontAwesomeIcons.rulerHorizontal,
+        '${((activity.distance ?? 0) / 1000).toStringAsFixed(2)} km',
+      ),
+      _StatData(
+        FontAwesomeIcons.stopwatch,
+        formatDuration(activity.duration ?? Duration.zero),
+      ),
+      ..._extraStats,
+    ];
 
     return Material(
       color: color ?? colors.surface,
@@ -110,28 +169,33 @@ class WalkCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Icon badge
               Container(
                 padding: EdgeInsets.all(spacing.sm),
                 decoration: BoxDecoration(
-                  color: colors.primary.withOpacity(0.12),
+                  color: colors.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: FaIcon(
-                  FontAwesomeIcons.personWalking,
+                  _icon,
                   color: colors.onPrimary,
                   size: context.iconSize.md,
                 ),
               ),
               SizedBox(width: spacing.md),
 
-              // Date + stats
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      formatDateWithWord(walk.registeredAt!),
+                      _label,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      formatDateWithWord(activity.registeredAt!),
                       style: textTheme.titleSmall?.copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w600,
@@ -142,18 +206,7 @@ class WalkCard extends StatelessWidget {
                       spacing: spacing.md,
                       runSpacing: spacing.xs,
                       children: [
-                        _Stat(
-                          icon: FontAwesomeIcons.rulerHorizontal,
-                          text: '${(walk.distance! / 1000).toStringAsFixed(2)} km',
-                        ),
-                        _Stat(
-                          icon: FontAwesomeIcons.stopwatch,
-                          text: formatDuration(walk.duration!),
-                        ),
-                        _Stat(
-                          icon: FontAwesomeIcons.shoePrints,
-                          text: '${walk.steps} pasos',
-                        ),
+                        for (final s in stats) _Stat(icon: s.icon, text: s.text),
                       ],
                     ),
                   ],
@@ -170,6 +223,11 @@ class WalkCard extends StatelessWidget {
   }
 }
 
+class _StatData {
+  final FaIconData icon;
+  final String text;
+  const _StatData(this.icon, this.text);
+}
 
 
 class _Stat extends StatelessWidget {

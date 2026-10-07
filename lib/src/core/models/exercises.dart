@@ -1,5 +1,10 @@
 // Base abstract class for the users physical activities.
 
+
+
+
+
+
 abstract class IPhysicalActivity{
   String? activityID;
   String? userUUID;
@@ -23,14 +28,14 @@ abstract class IPhysicalActivity{
 
 // Aerobics general class
 
-class Aerobics extends IPhysicalActivity{
+abstract class IAerobics extends IPhysicalActivity{
   final double? distance;
   final double? avgPace;
   final double? elevationGain;
   final double? avgCadence;
   double? heartRate;
 
-  Aerobics({
+  IAerobics({
     required super.activityID,
     required super.userUUID,
     required super.category,
@@ -48,7 +53,7 @@ class Aerobics extends IPhysicalActivity{
 }
 
 
-class Walk extends Aerobics{
+class Walk extends IAerobics{
   final int? steps;
   final double? avgSteps;
 
@@ -68,5 +73,69 @@ class Walk extends Aerobics{
     
     required this.steps,
     required this.avgSteps
+  });
+}
+
+
+
+class Running extends IAerobics{
+  // final int? steps;
+  // final double? avgSteps;
+  final double? speed;
+  final double? avgSpeed;
+
+
+  Running({
+    super.activityID,
+    super.userUUID,
+    super.category,
+    // required super.activityType,
+    required super.duration, 
+    required super.caloriesBurned,
+    required super.registeredAt,
+
+    required super.distance,
+    required super.avgPace,
+    required super.elevationGain,
+    required super.avgCadence,
+
+    this.speed,
+    this.avgSpeed,
+    
+    // required this.steps,
+    // required this.avgSteps
+  });
+}
+
+
+
+class Cycling extends IAerobics{
+  // final int? steps;
+  // final double? avgSteps;
+  final double? speed;
+  final double? avgSpeed;
+  final double? avgElevation;
+
+
+  Cycling({
+    super.activityID,
+    super.userUUID,
+    super.category,
+    // required super.activityType,
+    required super.duration, 
+    required super.caloriesBurned,
+    required super.registeredAt,
+
+    required super.distance,
+    required super.avgPace,
+    required super.elevationGain,
+    required super.avgCadence,
+
+    this.avgElevation,
+    this.speed,
+    this.avgSpeed,
+    
+    // required this.steps,
+    // required this.avgSteps
   });
 }

@@ -36,11 +36,7 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatCard({
-    required this.label,
-    required this.value,
-    this.icon,
-  });
+  const _StatCard({required this.label, required this.value, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +262,11 @@ Widget exerciseControls(
         //   onPressed: onStart,
         //   // size: 80
         // ),
-        child: TrackActionButton(onPressed: onStart, icon: Icons.play_arrow_rounded, width: 150,),
+        child: TrackActionButton(
+          onPressed: onStart,
+          icon: Icons.play_arrow_rounded,
+          width: 150,
+        ),
       ),
       ExerciseControlsMode.tracking => Center(
         // child: circleButton(
@@ -276,7 +276,11 @@ Widget exerciseControls(
         //   onPressed: onPause,
         //   size: 90,
         // ),
-        child: TrackActionButton(icon: Icons.pause_rounded, onPressed: onPause, width: 150,),
+        child: TrackActionButton(
+          icon: Icons.pause_rounded,
+          onPressed: onPause,
+          width: 150,
+        ),
       ),
       ExerciseControlsMode.paused => Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -295,7 +299,6 @@ Widget exerciseControls(
           // ),
           // // SlideToConfirm(icon: Icons.delete_rounded, onConfirmed: onDiscard),
 
-
           // SizedBox(width: context.spacing.md),
           // circleButton(
           //   icon: Icons.play_arrow_rounded,
@@ -312,28 +315,32 @@ Widget exerciseControls(
           //   iconSize: context.iconSize.md,
           //   onPressed: onSave,
           // ),
-
-          TrackActionButton(onPressed: onResume, icon: Icons.play_arrow_rounded, width: 150,),
-          SizedBox(height: context.spacing.md,),
+          TrackActionButton(
+            onPressed: onResume,
+            icon: Icons.play_arrow_rounded,
+            width: 150,
+          ),
+          SizedBox(height: context.spacing.md),
 
           Row(
             mainAxisAlignment: .center,
             mainAxisSize: .max,
             crossAxisAlignment: .center,
             children: [
-          SlideToConfirm(onConfirmed: onDiscard, width: 100,),
-          SizedBox(width: context.spacing.sm,),
-          TrackActionButton(onPressed: onSave, icon: Icons.save, width: 100,),
+              SlideToConfirm(onConfirmed: onDiscard, width: 100),
+              SizedBox(width: context.spacing.sm),
+              TrackActionButton(
+                onPressed: onSave,
+                icon: Icons.save,
+                width: 100,
+              ),
             ],
-          )
-
+          ),
         ],
       ),
     },
   );
 }
-
-
 
 class TrackActionButton extends StatelessWidget {
   const TrackActionButton({
@@ -344,7 +351,7 @@ class TrackActionButton extends StatelessWidget {
     this.color,
     this.foregroundColor,
     this.height = 56,
-    this.width = 100
+    this.width = 100,
   });
 
   final String? label;
@@ -382,10 +389,9 @@ class TrackActionButton extends StatelessWidget {
               Flexible(
                 child: CustomTextWidget(
                   label: label ?? '',
-                    color: fg,
-                    fontSize: context.fontsSize.details,
-                    fontWeight: FontWeight.w700,
-                  
+                  color: fg,
+                  fontSize: context.fontsSize.details,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -396,8 +402,6 @@ class TrackActionButton extends StatelessWidget {
   }
 }
 
-
-
 class SlideToConfirm extends StatefulWidget {
   const SlideToConfirm({
     super.key,
@@ -407,7 +411,7 @@ class SlideToConfirm extends StatefulWidget {
     this.color,
     this.height = 50,
     this.threshold = 0.85, // how far to slide (0-1) to count as confirmed
-    this.width
+    this.width,
   });
 
   final String? label;
@@ -436,8 +440,10 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
       builder: (context, constraints) {
         const pad = 4.0;
         final thumb = widget.height - pad * 2;
-        final maxDx = (constraints.maxWidth - thumb - pad * 2)
-            .clamp(1.0, width);
+        final maxDx = (constraints.maxWidth - thumb - pad * 2).clamp(
+          1.0,
+          width,
+        );
         final progress = (_dx / maxDx).clamp(0.0, 1.0);
 
         void onEnd() {
@@ -473,8 +479,9 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
             children: [
               // Fill that follows the thumb
               AnimatedContainer(
-                duration:
-                    _dragging ? Duration.zero : const Duration(milliseconds: 200),
+                duration: _dragging
+                    ? Duration.zero
+                    : const Duration(milliseconds: 200),
                 width: _dx + thumb + pad * 2,
                 decoration: BoxDecoration(
                   color: colors.danger.withAlpha(200),
@@ -501,11 +508,13 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
 
               // Thumb
               AnimatedPositioned(
-                duration:
-                    _dragging ? Duration.zero : const Duration(milliseconds: 200),
+                duration: _dragging
+                    ? Duration.zero
+                    : const Duration(milliseconds: 200),
                 left: pad + _dx,
                 child: GestureDetector(
-                  onHorizontalDragStart: (_) => setState(() => _dragging = true),
+                  onHorizontalDragStart: (_) =>
+                      setState(() => _dragging = true),
                   onHorizontalDragUpdate: (d) => setState(
                     () => _dx = (_dx + d.delta.dx).clamp(0.0, maxDx),
                   ),
@@ -514,7 +523,10 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
                   child: Container(
                     width: thumb,
                     height: thumb,
-                    decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      shape: BoxShape.circle,
+                    ),
                     child: Icon(widget.icon, color: Colors.white),
                   ),
                 ),
@@ -530,11 +542,176 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
 
 
 
+class ExerciseTypeSelector extends StatelessWidget {
+  const ExerciseTypeSelector({
+    super.key,
+    required this.selected,
+    required this.onSelected,
+    this.enabled = true,
+  });
+
+  final ExerciseType selected;
+  final ValueChanged<ExerciseType> onSelected;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: Container(
+        padding: EdgeInsets.all(context.spacing.xs),
+        decoration: BoxDecoration(
+          color: colors.onPrimary.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(context.spacing.radiusLg),
+        ),
+        child: Row(
+          children: [
+            for (final type in ExerciseType.values)
+              Expanded(
+                child: _TypeItem(
+                  type: type,
+                  isSelected: type == selected,
+                  onTap: enabled ? () => onSelected(type) : null,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TypeItem extends StatelessWidget {
+  const _TypeItem({
+    required this.type,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final ExerciseType type;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.secondary : Colors.transparent,
+          borderRadius: BorderRadius.circular(context.spacing.radiusLg),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              type.icon,
+              size: context.iconSize.md,
+              color: isSelected ? Colors.white : colors.textPrimary,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              type.label,
+              style: TextStyle(
+                fontSize: context.fontsSize.details,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : colors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
 
 
 
 class TrackingSheetContent extends StatelessWidget {
   const TrackingSheetContent({super.key});
+
+  // ───────── Formateadores ─────────
+
+  String _formatSpeedKmh(double? speedMs) {
+    if (speedMs == null || !speedMs.isFinite || speedMs < 0) return '--';
+    return (speedMs * 3.6).toStringAsFixed(1);
+  }
+
+  /// Ritmo en min/km a partir de la velocidad en m/s. "--:--" si casi no hay movimiento.
+  String _formatPace(double? speedMs) {
+    if (speedMs == null || !speedMs.isFinite || speedMs < 0.5) return '--:--';
+    final secPerKm = 1000 / speedMs;
+    var minutes = secPerKm ~/ 60;
+    var seconds = (secPerKm % 60).round();
+    if (seconds == 60) {
+      minutes += 1;
+      seconds = 0;
+    }
+    // Ritmos absurdos (> 60 min/km) se consideran sin movimiento.
+    if (minutes >= 60) return '--:--';
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  /// Estadísticas secundarias según el tipo de actividad.
+  /// La distancia va siempre primero, y luego las propias del deporte.
+  List<_TileData> _statsFor(ExerciseTrackingState state) {
+    final active = state is ActiveExerciseState ? state : null;
+
+    final hasDistance =
+        active?.distance != null && active!.distance! > 0;
+    final distance = hasDistance
+        ? (active.distance! / 1000).toStringAsFixed(2)
+        : '--';
+
+    final distanceTile = _TileData(
+      label: 'Distancia',
+      data: distance,
+      sufix: hasDistance ? 'km' : '',
+    );
+
+    switch (state.selectedType) {
+      case ExerciseType.walk:
+        return [
+          distanceTile,
+          _TileData(
+            label: 'Pasos',
+            data: active?.steps != null ? '${active!.steps}' : '--',
+          ),
+        ];
+
+      case ExerciseType.running:
+        final pace = _formatPace(active?.speed);
+        return [
+          distanceTile,
+          _TileData(
+            label: 'Ritmo',
+            data: pace,
+            sufix: pace == '--:--' ? '' : 'min/km',
+          ),
+        ];
+
+      case ExerciseType.cycling:
+        final speed = _formatSpeedKmh(active?.speed);
+        return [
+          distanceTile,
+          _TileData(
+            label: 'Velocidad',
+            data: speed,
+            sufix: speed == '--' ? '' : 'km/h',
+          ),
+        ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -549,18 +726,14 @@ class TrackingSheetContent extends StatelessWidget {
         final isTracking = state is TrackingExercise;
 
         final time = hasData ? formatDuration(state.timeElapsed) : '--:--';
-        final steps =
-            hasData && state.steps != null ? '${state.steps}' : '--';
-        final hasDistance =
-            hasData && state.distance != null && state.distance! > 0;
-        final distance =
-            hasDistance ? (state.distance! / 1000).toStringAsFixed(2) : '--';
 
         final status = isPaused
             ? 'Pausado'
             : isTracking
                 ? 'En progreso'
                 : 'Listo para comenzar';
+
+        final stats = _statsFor(state);
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -573,27 +746,31 @@ class TrackingSheetContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomTextWidget(label: time, fontSize: context.fontsSize.display, fontWeight: .w800,),
-                      CustomTextWidget(label: status, fontSize: context.fontsSize.caption,),
+                      CustomTextWidget(
+                        label: time,
+                        fontSize: context.fontsSize.display,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      CustomTextWidget(
+                        label: '${state.selectedType.label} · $status',
+                        fontSize: context.fontsSize.caption,
+                      ),
                     ],
                   ),
                 ),
                 if (isTracking)
                   TrackActionButton(
-                    // width: 100,
                     icon: Icons.pause_rounded,
                     color: colors.warning,
                     onPressed: () => bloc.add(PauseExerciseEvent()),
                   )
                 else if (isPaused)
                   TrackActionButton(
-                    // width: 56,
                     icon: Icons.play_arrow_rounded,
                     onPressed: () => bloc.add(ResumeExerciseEvent()),
                   )
                 else
                   TrackActionButton(
-                    // width: 56,
                     icon: Icons.play_arrow_rounded,
                     onPressed: () => bloc.add(StartExerciseEvent()),
                   ),
@@ -602,31 +779,17 @@ class TrackingSheetContent extends StatelessWidget {
 
             SizedBox(height: spacing.md),
 
-            // ---------- EXPANDED: stats ----------
+            // ---------- EXPANDED: stats dinámicos ----------
             Row(
               children: [
-                // Expanded(
-                //   child: GridDataTileTrasparent(
-                //     // icon: FontAwesomeIcons.stopwatch,
-                //     data: time,
-                //     label: 'Duración',
-                //   ),
-                // ),
-                Expanded(
-                  child: GridDataTileTrasparent(
-                    // icon: FontAwesomeIcons.ruler,
-                    data: distance,
-                    sufix: hasDistance ? 'km' : '',
-                    label: 'Distancia',
+                for (final tile in stats)
+                  Expanded(
+                    child: GridDataTileTrasparent(
+                      data: tile.data,
+                      sufix: tile.sufix,
+                      label: tile.label,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: GridDataTileTrasparent(
-                    // icon: FontAwesomeIcons.shoePrints,
-                    data: steps,
-                    label: 'Pasos',
-                  ),
-                ),
               ],
             ),
 
@@ -643,7 +806,6 @@ class TrackingSheetContent extends StatelessWidget {
                   ),
                   SizedBox(width: spacing.md),
                   TrackActionButton(
-                    // width: 56,
                     icon: Icons.save,
                     color: colors.success,
                     onPressed: () => bloc.add(SaveExerciseEvent()),
@@ -656,4 +818,11 @@ class TrackingSheetContent extends StatelessWidget {
       },
     );
   }
+}
+
+class _TileData {
+  final String label;
+  final String data;
+  final String sufix;
+  const _TileData({required this.label, required this.data, this.sufix = ''});
 }

@@ -109,3 +109,45 @@ class WalkActivitySample extends ActivitySample {
   });
 }
 
+class RunningActivitySample extends ActivitySample {
+  // @override
+  // final int? steps;
+
+  RunningActivitySample({
+    super.sampleID,
+    required super.activityID,
+    required super.timestampMs,
+    super.heartRate,
+    super.distance,
+    super.calories,
+    // super.steps,  // steps added
+    super.pace,
+    super.speed,
+    super.cadence,
+    super.elevation,
+    super.latitude,
+    super.longitude,
+  });
+}
+
+
+class CyclingActivitySample extends ActivitySample {
+  // @override
+  // final int? steps;
+
+  CyclingActivitySample({
+    super.sampleID,
+    required super.activityID,
+    required super.timestampMs,
+    super.heartRate,
+    super.distance,
+    super.calories,
+    // super.steps,  // steps added
+    super.pace,
+    super.speed,
+    super.cadence,
+    super.elevation,
+    super.latitude,
+    super.longitude,
+  });
+}

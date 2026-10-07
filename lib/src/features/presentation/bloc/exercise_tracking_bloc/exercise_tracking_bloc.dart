@@ -6,16 +6,66 @@ import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_tracking_b
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_tracking_bloc/exercise_tracking_state.dart';
 import 'package:salud_ulv_app/src/features/services/background_service.dart';
 
+
+
+enum ExerciseType { walk, running, cycling }
+
+extension ExerciseTypeX on ExerciseType {
+  String get label => switch (this) {
+        ExerciseType.walk => 'Caminata',
+        ExerciseType.running => 'Running',
+        ExerciseType.cycling => 'Ciclismo',
+      };
+
+  IconData get icon => switch (this) {
+        ExerciseType.walk => Icons.directions_walk_rounded,
+        ExerciseType.running => Icons.directions_run_rounded,
+        ExerciseType.cycling => Icons.directions_bike_rounded,
+      };
+}
+
+
+
 class ExerciseTrackingBloc
     extends Bloc<ExerciseTrackingEvent, ExerciseTrackingState> {
-  final IExerciseTrackUseCase usecase;
+  final Map<ExerciseType, IExerciseTrackUseCase> usecases;
+  ExerciseType _selectedType;
 
-  ExerciseTrackingBloc({required this.usecase}) : super(ExerciseInitial()) {
+  ExerciseType get selectedType => _selectedType;
+  IExerciseTrackUseCase get usecase => usecases[_selectedType]!;
+
+  ExerciseTrackingBloc({
+    required this.usecases,
+    ExerciseType initialType = ExerciseType.walk,
+  })  : _selectedType = initialType,
+        super(ExerciseInitial(selectedType: initialType)) {
+    on<SelectExerciseTypeEvent>(_onSelectType);
     on<StartExerciseEvent>(_onStart);
     on<PauseExerciseEvent>(_onPause);
     on<ResumeExerciseEvent>(_onResume);
     on<SaveExerciseEvent>(_onSave);
     on<DiscardExerciseEvent>(_onDiscard);
+  }
+
+  // Helpers para no repetir los getters opcionales del use case.
+  int? get _steps =>
+      usecase is IStepTrackable ? (usecase as IStepTrackable).steps : null;
+
+  double? get _speed =>
+      usecase is ISpeedTrackable ? (usecase as ISpeedTrackable).speed : null;
+
+  ILocationTrackable? get _location =>
+      usecase is ILocationTrackable ? usecase as ILocationTrackable : null;
+
+  void _onSelectType(
+    SelectExerciseTypeEvent event,
+    Emitter<ExerciseTrackingState> emit,
+  ) {
+    // No se puede cambiar de ejercicio con una actividad en curso/pausada.
+    if (state is ActiveExerciseState) return;
+
+    _selectedType = event.type;
+    emit(ExerciseInitial(selectedType: _selectedType));
   }
 
   Future<void> _onStart(
@@ -25,11 +75,12 @@ class ExerciseTrackingBloc
     final serviceStarted = await requestExercisePermissionsAndStartService();
 
     if (!serviceStarted) {
-      emit(
-        ExerciseError(
-          'Necesitamos permisos de ubicación y actividad física para registrar tu ejercicio',
-        ),
-      );
+      emit(ExerciseError(
+        selectedType: _selectedType,
+        message:
+            'Necesitamos permisos de ubicación y actividad física para registrar tu ejercicio',
+      ));
+      emit(ExerciseInitial(selectedType: _selectedType));
       return;
     }
 
@@ -42,19 +93,14 @@ class ExerciseTrackingBloc
 
     await emit.forEach<Duration>(
       usecase.elapsedStream!,
-
       onData: (elapsed) => TrackingExercise(
+        selectedType: _selectedType,
         distance: usecase.distance,
-        steps: usecase is IStepTrackable
-            ? (usecase as IStepTrackable).steps
-            : null,
-        timeElapsed: usecase.elapsed!,
-        startLocation: usecase is ILocationTrackable
-            ? (usecase as ILocationTrackable).startLocation
-            : null,
-        currentLocation: usecase is ILocationTrackable
-            ? (usecase as ILocationTrackable).currentLocation
-            : null,
+        steps: _steps,
+        speed: _speed,
+        timeElapsed: elapsed,
+        startLocation: _location?.startLocation,
+        currentLocation: _location?.currentLocation,
       ),
     );
   }
@@ -62,37 +108,37 @@ class ExerciseTrackingBloc
   void _onPause(
     PauseExerciseEvent event,
     Emitter<ExerciseTrackingState> emit,
-  ) async {
+  ) {
     usecase.pause();
     pauseExerciseTracking();
 
-    emit(
-      ExercisePaused(
-        distance: usecase.distance,
-        steps: usecase is IStepTrackable
-            ? (usecase as IStepTrackable).steps
-            : null,
-        timeElapsed: usecase.elapsed!,
-      ),
-    );
+    emit(ExercisePaused(
+      selectedType: _selectedType,
+      distance: usecase.distance,
+      steps: _steps,
+      speed: _speed,
+      timeElapsed: usecase.elapsed!,
+      startLocation: _location?.startLocation,
+      currentLocation: _location?.currentLocation,
+    ));
   }
 
-  void _onResume(
+  Future<void> _onResume(
     ResumeExerciseEvent event,
     Emitter<ExerciseTrackingState> emit,
   ) async {
     usecase.resume();
     startExerciseTracking();
 
-    emit(
-      TrackingExercise(
-        distance: usecase.distance,
-        steps: usecase is IStepTrackable
-            ? (usecase as IStepTrackable).steps
-            : null,
-        timeElapsed: usecase.elapsed!,
-      ),
-    ); // restart the stream
+    emit(TrackingExercise(
+      selectedType: _selectedType,
+      distance: usecase.distance,
+      steps: _steps,
+      speed: _speed,
+      timeElapsed: usecase.elapsed!,
+      startLocation: _location?.startLocation,
+      currentLocation: _location?.currentLocation,
+    ));
 
     await _startTracking(emit);
   }
@@ -102,38 +148,39 @@ class ExerciseTrackingBloc
     Emitter<ExerciseTrackingState> emit,
   ) async {
     try {
-      final endLocation = usecase is ILocationTrackable
-          ? (usecase as ILocationTrackable).currentLocation
-          : null;
+      final endLocation = _location?.currentLocation;
 
       await usecase.save();
-      // usecase.discard();
-      // finishExercise();
 
-      emit(ExerciseSaved(endLocation!));
-      emit(ExerciseInitial());
-
+      if (endLocation != null) {
+        emit(ExerciseSaved(
+          selectedType: _selectedType,
+          endLocation: endLocation,
+        ));
+      }
+      emit(ExerciseInitial(selectedType: _selectedType));
     } on ExerciseValidationException catch (e) {
-      finishExercise();
-      emit(ExerciseError(e.message));
-      emit(ExerciseInitial());
-
+      emit(ExerciseError(selectedType: _selectedType, message: e.message));
+      emit(ExerciseInitial(selectedType: _selectedType));
     } catch (e, st) {
-      debugPrint('Save failed: $e\n$st');  
-      emit(ExerciseError('No se pudo guardar la caminata'));
-    }
-    finally{
+      debugPrint('Save failed: $e\n$st');
+      emit(ExerciseError(
+        selectedType: _selectedType,
+        message: 'No se pudo guardar la actividad',
+      ));
+      emit(ExerciseInitial(selectedType: _selectedType));
+    } finally {
       finishExercise();
     }
   }
 
-  void _onDiscard(
+  Future<void> _onDiscard(
     DiscardExerciseEvent event,
     Emitter<ExerciseTrackingState> emit,
-  ) {
+  ) async {
     usecase.discard();
     finishExercise();
 
-    emit(ExerciseInitial());
+    emit(ExerciseInitial(selectedType: _selectedType));
   }
 }

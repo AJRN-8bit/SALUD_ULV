@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:salud_ulv_app/src/core/usecase/exercises/walk/walk_usecase.dart';
+// import 'package:path/path.dart';
+import 'package:salud_ulv_app/src/core/usecase/exercises/trackers/walk_usecase.dart';
 import 'package:salud_ulv_app/src/core/usecase/location/get_current_position.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/accelerometer_sensor.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/geolocator_sensor.dart';
@@ -13,7 +14,7 @@ import 'package:salud_ulv_app/src/features/presentation/shared/widgets/exercise_
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/expandable_sheet.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/listviews.dart';
 import 'package:salud_ulv_app/src/features/services/location_permition.dart';
-import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
+// import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_repo.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_tracking_bloc/exercise_tracking_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_tracking_bloc/exercise_tracking_state.dart';
@@ -98,6 +99,7 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // final selectedType = context.read<ExerciseTrackingBloc>();
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -205,11 +207,25 @@ class _ExerciseTrackerMainPageState extends State<_ExerciseTrackerMainPage> {
             ),
 
             ExpandableSheet(
-              initialSize: 0.2,
-              minSize: 0.2,
-              maxSize: 0.5,
-              child: TrackingSheetContent()),
-
+              initialSize: 0.32,
+              minSize: 0.32,
+              maxSize: 0.7,
+              child: Column(
+                children: [
+                  BlocBuilder<ExerciseTrackingBloc, ExerciseTrackingState>(
+                    builder: (context, state) => ExerciseTypeSelector(
+                      selected: state.selectedType,
+                      enabled: state is! ActiveExerciseState,
+                      onSelected: (type) => context
+                          .read<ExerciseTrackingBloc>()
+                          .add(SelectExerciseTypeEvent(type)),
+                    ),
+                  ),
+                  SizedBox(height: context.spacing.md),
+                  const TrackingSheetContent(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

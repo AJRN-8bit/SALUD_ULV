@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:salud_ulv_app/src/core/data/DTOs/activity_samples_dto.dart';
+import 'package:salud_ulv_app/src/core/models/exercise_samples.dart';
 import 'package:salud_ulv_app/src/core/models/exercises.dart';
 import 'package:salud_ulv_app/src/core/repositories/repos/excercise_repo.dart';
 import 'package:salud_ulv_app/src/core/data/DTOs/walk_dto.dart';
 // import 'package:salud_ulv_app/src/features/data/source/local/services/current_user_session.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/db_config.dart';
+import 'package:salud_ulv_app/src/core/repositories/repos/exercise_sample_repo.dart';
 import 'package:sqflite/sqflite.dart';
 
 class WalkRepo implements IExerciseLocalRepo {
@@ -13,45 +16,41 @@ class WalkRepo implements IExerciseLocalRepo {
   final _tableName = 'WalkActivity';
 
   @override
-Future<void> setIDs(
-  String activityID,
-  String userUUID,
-  int categoryID,
-  DateTime date,
-) async {
-  try {
-    final db = await _db;
+  Future<void> setIDs(
+    String activityID,
+    String userUUID,
+    int categoryID,
+    DateTime date,
+  ) async {
+    try {
+      final db = await _db;
 
-    final model = {
-      'activityID': activityID,
-      'userUUID': userUUID,
-      'categoryID': categoryID,
-      'registeredAt': date.toIso8601String()
-    };
+      final model = {
+        'activityID': activityID,
+        'userUUID': userUUID,
+        'categoryID': categoryID,
+        'registeredAt': date.toIso8601String(),
+      };
 
-    final id = await db.insert(
-      _tableName,
-      model,
-    );
+      final id = await db.insert(_tableName, model);
 
-    debugPrint('Created activity: $activityID');
-    debugPrint('Inserted activity row: $id');
+      debugPrint('Created activity: $activityID');
+      debugPrint('Inserted activity row: $id');
 
-    final check = await db.query(
-      _tableName,
-      where: 'activityID = ?',
-      whereArgs: [activityID],
-    );
+      final check = await db.query(
+        _tableName,
+        where: 'activityID = ?',
+        whereArgs: [activityID],
+      );
 
-    debugPrint('ACTIVITY AFTER CREATION: $check');
-  } catch (e, stackTrace) {
-    debugPrint('ERROR SETTING ACTIVITY IDS: $e');
-    debugPrintStack(stackTrace: stackTrace);
+      debugPrint('ACTIVITY AFTER CREATION: $check');
+    } catch (e, stackTrace) {
+      debugPrint('ERROR SETTING ACTIVITY IDS: $e');
+      debugPrintStack(stackTrace: stackTrace);
 
-    throw Exception("Error setting walk activity IDs");
+      throw Exception("Error setting walk activity IDs");
+    }
   }
-}
-
 
   @override
   Future<void> save(IPhysicalActivity exercise) async {
@@ -104,7 +103,6 @@ Future<void> setIDs(
       // debugPrint(WalkDTO.fromMap(data.first).toString());
       // debugPrint('Date from db: ${result.registeredAt.toString()}');
 
-
       return result.activityID;
     } catch (e) {
       throw Exception("Error while getting recent data");
@@ -142,25 +140,17 @@ Future<void> setIDs(
     try {
       final db = await _db;
 
+      await db.delete(_tableName, where: 'steps == ?', whereArgs: [0]);
 
-//       await db.delete(
-//   _tableName,
-//   where: 'activityID != ?',
-//   whereArgs: ["113125E4-1125-41E7-8903-1B9AF6819712"],
-// );
+      // final result1 = await db.query(
+      //   _tableName,
+      //   where: 'userUUID = ?',
+      //   whereArgs: [userUUID]
+      // );
 
-
-
-// final result1 = await db.query(
-//   _tableName,
-//   where: 'userUUID = ?',
-//   whereArgs: [userUUID]
-// );
-
-// debugPrint('list');
-// debugPrint(userUUID);
-// debugPrint(result1.toString());
-
+      // debugPrint('list');
+      // debugPrint(userUUID);
+      // debugPrint(result1.toString());
 
       final data = await db.query(
         _tableName,
@@ -168,8 +158,6 @@ Future<void> setIDs(
         whereArgs: [userUUID],
         orderBy: 'registeredAt ASC',
       );
-
-
 
       final result = data
           .map((row) => WalkDTO.fromMap(row).toDomain())
@@ -235,9 +223,8 @@ Future<void> setIDs(
       await db.delete(
         _tableName,
         where: 'userUUID = ? AND activityID = ?',
-        whereArgs: [userUUID, activityID]
+        whereArgs: [userUUID, activityID],
       );
-      
     } catch (e) {
       return;
     }
@@ -250,214 +237,147 @@ Future<void> setIDs(
 
 
 
-//   static String _resolveTableName(String type) => switch (type) {
-//       'walk' => 'WalkActivity',
-//       // 'run' => 'RunActivity',
-//       // 'swim' => 'SwimActivity',
-//       _ => throw Exception('Unsupported activity type: $type'),
-//     };
+class WalkSamplesRepo implements IActivitySampleRepo{
+  Future<Database> get _db async => await AppDatabase.database;
+  final _tableName = 'WalkActivitySample';
 
-//   PhysicalActivity Function(Map<String, dynamic>) get _fromMap => switch (tableName) {
-//       'WalkActivity' => (row) => WalkDTO.fromMap(row).toDomain(),
-//       // 'RunActivity' => (row) => RunDTO.fromMap(row).toDomain(),
-//       // 'SwimActivity' => (row) => SwimDTO.fromMap(row).toDomain(),
-//       _ => throw Exception('Unsupported table: $tableName'),
-//     };
+  @override
+Future<void> save(ActivitySample data) async {
+  try {
+    final db = await _db;
 
-//   Map<String, dynamic> Function(PhysicalActivity) get _toMap => switch (tableName) {
-//         'WalkActivity' => (a) => WalkDTO.fromDomain(a as Walk).toMap(),
-//         // 'RunActivity' => (a) => RunDTO.fromDomain(a as Run).toMap(),
-//         // 'SwimActivity' => (a) => SwimDTO.fromDomain(a as Swim).toMap(),
-//         _ => throw Exception('Unsupported table: $tableName'),
-//       };
+    final sample = data as WalkActivitySample;
+    final model = WalkActivitySampleDTO
+        .fromDomain(sample)
+        .toMap();
 
+    debugPrint('========== INSERT SAMPLE ==========');
 
+    debugPrint('DB: $db');
+    debugPrint('SAVE DB: ${identityHashCode(db)}');
+    debugPrint('ID: [${sample.activityID}]');
+    debugPrint('MODEL: $model');
 
-//   @override
-//   Future<void> save(PhysicalActivity exercise) async {
-//     try {
-//       final db = await _db;
-//       await db.insert(tableName, _toMap(exercise));
-//     } catch (e) {
-//       throw Exception("Error saving to $tableName");
-//     }
-//   }
+    final id = await db.insert(
+      _tableName,
+      model,
+    );
 
+    debugPrint('INSERTED ROW ID: $id');
 
+    // Immediately query it using THE SAME db instance.
+    final check = await db.query(
+      _tableName,
+      where: 'sampleID = ?',
+      whereArgs: [id],
+    );
 
-//   @override
-//   Future<PhysicalActivity?> getRecent(String exerciseType) async {
-//     try {
-//       final db = await _db;
-//       final userUUID = await currentUserSession.getCurrentUserUUID();
-//       if (userUUID == null) return null;
+    debugPrint('IMMEDIATE CHECK: $check');
+  } catch (e, stackTrace) {
+    debugPrint('ERROR INSERTING SAMPLE: $e');
+    debugPrintStack(stackTrace: stackTrace);
 
-//       final data = await db.query(
-//         tableName,
-//         where: 'userUUID = ?',
-//         whereArgs: [userUUID],
-//         orderBy: 'registeredAt DESC',
-//         limit: 1,
-//       );
-//       if (data.isEmpty) return null;
+    throw Exception("Error in saving data");
+  }
+}
 
-//       return _fromMap(data.first);
-//     } catch (e) {
-//       throw Exception("Error while getting recent data from $tableName");
-//     }
-//   }
-
-
-
-//   @override
-//   Future<List<PhysicalActivity>> getAll(String exerciseType) async {
-//     try {
-//       final db = await _db;
-//       final userUUID = await currentUserSession.getCurrentUserUUID();
-//       if (userUUID == null) return [];
-
-//       final data = await db.query(tableName, where: 'userUUID = ?', whereArgs: [userUUID]);
-//       return data.map(_fromMap).toList();
-//     } catch (e) {
-//       throw Exception("Error while getting all data from $tableName");
-//     }
-//   }
-
-
-
-//   @override
-//   Future<void> delete(String activityID) async {
-//     try {
-//       final db = await _db;
-//       await db.delete(tableName, where: 'activityID = ?', whereArgs: [activityID]);
-//     } catch (e) {
-//       throw Exception("Error deleting from $tableName");
-//     }
-//   }
-// }
-
-
-
-
-// @override
-//   Future<void> save(PhysicalActivity exercise) async {
-//     try {
-//       final db = await _db;
-      
-//       // Using a switch expression returning a Record (model, tableName)
-//       final (model, targetTable) = switch (exercise) {
-//         Walk walk => (WalkDTO.fromDomain(walk).toMap(), 'WalkActivity'),
-//         _ => throw Exception("Unsupported activity type"),
-//       };
-
-//       debugPrint(model.toString());
-//       await db.insert(targetTable, model);
-      
-//     } catch (e) {
-//       debugPrint(e.toString());
-//       throw Exception("Error in saving data");
-//     }
-//   }
-
-
-
-
-//   @override
-//   Future<PhysicalActivity?> getRecent() async {
-//     try {
-//       final db = await _db;
-
-//       final userUUID = await currentUserSession.getCurrentUserUUID();
-//       if(userUUID == null) return null;
-
-//       final sources = <(String table, PhysicalActivity Function(Map<String, dynamic>) fromMap)>[
-//         ('WalkActivity', (row) => WalkDTO.fromMap(row).toDomain()),
-//       // ('RunActivity', (row) => RunDTO.fromMap(row).toDomain()),
-//       // ('CycleActivity', (row) => CycleDTO.fromMap(row).toDomain()),
-//       ];
-
-
-//       PhysicalActivity? mostRecent;
-
-//       for (final (table, fromMap) in sources) {
-//         final rows = await db.query(
-//           table,
-//           where: 'userUUID = ?',
-//           whereArgs: [userUUID],
-//           orderBy: 'registryDate DESC',
-//           limit: 1,
-//         );
-
-//         if (rows.isEmpty) continue;
-
-//         final candidate = fromMap(rows.first);
-
-//         if (mostRecent == null ||
-//             candidate.registryDate!.isAfter(mostRecent.registryDate!)) {
-//           mostRecent = candidate;
-//         }
-//       }
-
-//       return mostRecent;
-
-//     } catch (e) {
-//       debugPrint(e.toString());
-//       throw Exception("Error in saving data");
-//     }
-//   }
-
-
-
-
-//   @override
-//   Future<List<PhysicalActivity>?> getAll() async {
-//     try {
-//             final db = await _db;
-
-//       final userUUID = await currentUserSession.getCurrentUserUUID();
-//       if(userUUID == null) return null;
-
-//       final sources = <(String table, PhysicalActivity Function(Map<String, dynamic>) fromMap)>[
-//         ('WalkActivity', (row) => WalkDTO.fromMap(row).toDomain()),
-//       // ('RunActivity', (row) => RunDTO.fromMap(row).toDomain()),
-//       // ('CycleActivity', (row) => CycleDTO.fromMap(row).toDomain()),
-//       ];
-
-
-//       final result = <PhysicalActivity>[];
-
-//       for (final (table, fromMap) in sources) {
-//         final data = await db.query(
-//           table,
-//           where: 'userUUID = ?',
-//           whereArgs: [userUUID],
-//           orderBy: 'registeredAt DESC',
-//         );
-
-//         result.addAll(data.map(fromMap));
-//       }
-
-//       result.sort((a, b) => b.registryDate!.compareTo(a.registryDate!));
-//       return result;
-
-//       } catch (e) {
-//         debugPrint(e.toString());
-//         throw Exception("Error in saving data");
-//       }
-//     }
 
 
   // @override
-  // Future<void> update(PhysicalActivity exercise) {
-  //   // TODO: implement update
-  //   throw UnimplementedError();
+  // Future<List<IActivitySample>?>getSamples (String activityID) async {
+  //   try {
+  //     debugPrint('in db: $activityID');
+  //     final db = await _db;
+
+  //     final data = await db.query(
+  //       _tableName, 
+  //       where: 'activityID = ?',
+  //       whereArgs: [activityID],
+  //       orderBy: 'timestamp_ms DESC');
+
+  //     debugPrint('data samples from db: $data');
+
+  //     final result = data.map((row) => WalkActivitySampleDTO.fromMap(row).toDomain()).toList();
+  //     // debugPrint(result.toString());
+
+  //     return result;
+
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //     throw Exception("Error in getting data");
+  //   }
   // }
 
+@override
+Future<List<IActivitySample>?> getSamples(String activityID) async {
+  try {
+    final db = await _db;
+
+    // debugPrint('========== GET SAMPLES ==========');
+    // debugPrint('GET DB: ${identityHashCode(db)}');
+
+    // debugPrint('Searching activityID: [$activityID]');
+    // debugPrint('Table: $_tableName');
+
+    // First: see EVERYTHING in the table
+    final allRows = await db.query(_tableName);
+
+    debugPrint('TOTAL ROWS: ${allRows.length}');
+
+    // for (final row in allRows) {
+    //   // debugPrint(
+    //   //   'DB sampleID=${row['sampleID']} '
+    //   //   'activityID=[${row['activityID']}]',
+    //   // );
+    // }
+
+    // Second: query specifically
+    final data = await db.query(
+      _tableName,
+      where: 'activityID = ?',
+      whereArgs: [activityID],
+      orderBy: 'timestamp_ms ASC',
+    );
+
+    // debugPrint('MATCHING ROWS: ${data.length}');
+    // debugPrint('MATCHING DATA: $data');
+
+    final result = data
+        .map(
+          (row) => WalkActivitySampleDTO
+              .fromMap(row)
+              .toDomain(),
+        )
+        .toList();
+
+    // debugPrint('RESULT: ${result.length}');
+
+    return result;
+  } catch (e, stackTrace) {
+    // debugPrint('GET SAMPLES ERROR: $e');
+    // debugPrintStack(stackTrace: stackTrace);
+
+    throw Exception("Error in getting data");
+  }
+}
 
 
-//   @override
-//   Future<void> delete(String uuid) {
-//     // TODO: implement delete
-//     throw UnimplementedError();
-//   }
-// }
+
+  @override
+  Future<void> delete(String activityID) async{
+    try {
+      final db = await _db;
+
+      await db.delete(
+        _tableName,
+        where: 'activityID == ?',
+        whereArgs: [activityID]
+      );
+      
+    } catch (e) {
+      debugPrint(e.toString());
+      throw Exception("Error in deleting data");
+    }
+  }
+
+}

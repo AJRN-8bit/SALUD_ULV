@@ -13,7 +13,7 @@ abstract class IAnthropometricLocalRepo {
 
 abstract class IAnthropometricExtRepo {
   Future<void> send(Anthropometrics data);
-  Future<List<Anthropometrics>?> getByUserCode(String input);
-  Future<List<Anthropometrics>?> getAll();
-  Future<List<Map<String, dynamic>>?> getByCodeAndField(String input, String field);
+  // Future<List<Anthropometrics>?> getByUserCode(String input);
+  // Future<List<Anthropometrics>?> getAll();
+  // Future<List<Map<String, dynamic>>?> getByCodeAndField(String input, String field);
 }

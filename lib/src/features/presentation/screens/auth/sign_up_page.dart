@@ -389,7 +389,7 @@ class _SignUpPageState extends State<_SignUpPage> {
                                     return Column(
                                       children: [
                                         CustomTextFormField(
-                                          label: "Matrícula",
+                                          label: "Matrícula o código",
                                           controller: _userCodeController,
                                           keyboardType: TextInputType.number,
                                           prefixIcon: FontAwesomeIcons.hashtag,

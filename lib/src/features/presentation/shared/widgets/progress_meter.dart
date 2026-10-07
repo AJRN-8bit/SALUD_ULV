@@ -7,12 +7,15 @@ import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dar
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/info.dart';
 
 class CircularProgressMeter extends StatelessWidget {
-  final int amount;
-  final int goalAmount;
+  final num amount;
+  final num goalAmount;
   final FaIconData? icon;
   final double size;
   final double strokeWidth;
   final String? label;
+
+  /// Decimales a mostrar cuando el valor es double. Ignorado si es int.
+  final int decimals;
 
   const CircularProgressMeter({
     super.key,
@@ -22,16 +25,30 @@ class CircularProgressMeter extends StatelessWidget {
     this.size = 180,
     this.strokeWidth = 14,
     this.label,
+    this.decimals = 1,
   });
 
   double get _progress {
-    if (goalAmount <= 0) {
-      return 0.0;
-    }
+    final goal = goalAmount.toDouble();
+    final value = amount.toDouble();
 
-    final safeAmount = amount < 0 ? 0 : amount;
+    if (!goal.isFinite || !value.isFinite || goal <= 0) return 0.0;
 
-    return (safeAmount / goalAmount).clamp(0.0, 1.0);
+    return (math.max(value, 0) / goal).clamp(0.0, 1.0);
+  }
+
+  /// int -> "1200"; double -> "3.4" (o "3" si no tiene parte decimal útil).
+  String _format(num value) {
+    if (value is int) return value.toString();
+
+    final d = value.toDouble();
+    if (!d.isFinite) return '--';
+
+    final text = d.toStringAsFixed(decimals);
+    // Quita ceros sobrantes: "5.0" -> "5", "5.50" -> "5.5"
+    return text.contains('.')
+        ? text.replaceFirst(RegExp(r'\.?0+$'), '')
+        : text;
   }
 
   @override
@@ -39,13 +56,11 @@ class CircularProgressMeter extends StatelessWidget {
     final colors = context.colors;
     final spacing = context.spacing;
 
-    // Protect CustomPaint from invalid dimensions.
     final safeSize = size.isFinite && size > 0 ? size : 180.0;
 
-    final safeStrokeWidth =
-        strokeWidth.isFinite && strokeWidth > 0
-            ? math.min(strokeWidth, safeSize / 2)
-            : 14.0;
+    final safeStrokeWidth = strokeWidth.isFinite && strokeWidth > 0
+        ? math.min(strokeWidth, safeSize / 2)
+        : 14.0;
 
     return SizedBox(
       width: safeSize,
@@ -74,7 +89,6 @@ class CircularProgressMeter extends StatelessWidget {
                   colors.primary,
                   colors.primary,
                   colors.primary,
-                  // colors.secondary,
                 ],
               ),
             ),
@@ -83,23 +97,21 @@ class CircularProgressMeter extends StatelessWidget {
           // Center content
           Column(
             mainAxisSize: MainAxisSize.min,
-            
             children: [
-              if(icon != null) ...[
-              FaIcon(
-                icon,
-                size: context.iconSize.sm,
-                color: colors.primary,
-              ),
-             SizedBox(height: spacing.xs),
+              if (icon != null) ...[
+                FaIcon(
+                  icon,
+                  size: context.iconSize.sm,
+                  color: colors.primary,
+                ),
+                SizedBox(height: spacing.xs),
               ],
-
 
               Text.rich(
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: '$amount',
+                      text: _format(amount),
                       style: TextStyle(
                         fontSize: context.fontsSize.headline,
                         fontWeight: FontWeight.bold,
@@ -107,7 +119,7 @@ class CircularProgressMeter extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: ' / $goalAmount',
+                      text: ' / ${_format(goalAmount)}',
                       style: TextStyle(
                         fontSize: context.fontsSize.body,
                         fontWeight: FontWeight.w400,
@@ -123,7 +135,6 @@ class CircularProgressMeter extends StatelessWidget {
                 CustomTextWidget(
                   label: label!,
                   fontSize: context.fontsSize.caption,
-                 
                 ),
               ],
             ],

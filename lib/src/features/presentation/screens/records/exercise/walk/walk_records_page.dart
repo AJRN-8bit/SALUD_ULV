@@ -13,7 +13,7 @@ import 'package:salud_ulv_app/src/core/usecase/exercises/get_recent_samples.dart
 import 'package:salud_ulv_app/src/core/data/DTOs/walk_dto.dart';
 import 'package:salud_ulv_app/src/core/data/source/token/current_user_service.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_repo.dart';
-import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
+// import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_bloc/exercise_bloc.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_bloc/exercise_event.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_bloc/exercise_state.dart';
@@ -127,7 +127,7 @@ class _WalkRecordsPageState extends State<_WalkRecordsPage> {
 
   void _onMapReady() {
     if (points.isEmpty) return;
-    _mapController.move(points.first, 16);
+    _mapController.move(points.first, 20);
   }
 
   @override
@@ -386,7 +386,7 @@ class _WalkRecordsPageState extends State<_WalkRecordsPage> {
                                                                 .toStringAsFixed(
                                                                   1,
                                                                 ),
-                                                            sufix: 'kcal',
+                                                            sufix: 'cal',
                                                           ),
                                                           GridDataTileTrasparent(
                                                             icon:

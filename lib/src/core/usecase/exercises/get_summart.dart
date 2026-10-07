@@ -33,9 +33,11 @@ class GetExerciseSummaryUseCase implements IGetExerciseSummary {
       return null;
     } 
 
+
+
     switch (data) {
       case List<Walk>():
-        return WalkExerciseSummary(
+        return AerobicExerciseSummary(
           recordCount: data.length,
           startDate: start,
           endDate: end,
@@ -57,6 +59,63 @@ class GetExerciseSummaryUseCase implements IGetExerciseSummary {
             'Pasos por minuto': _summarizeField(
               data.map((w) => w.avgCadence).toList(),
             ),
+            // 'heartRate': _summarizeField(data.map((w) => w.heartRate).toList()),
+            // 'avgSteps': _summarizeField(data.map((w) => w.avgSteps).toList()),
+          },
+        );
+
+        case List<Running>():
+        return AerobicExerciseSummary(
+          recordCount: data.length,
+          startDate: start,
+          endDate: end,
+          metrics: {
+            'Velocidad': _summarizeField(
+              data.map((w) => w.speed?.toDouble()).toList(),
+            ),
+            'Duración': _summarizeField(
+              data.map((w) => w.duration?.inSeconds.toDouble()).toList(),
+            ),
+            'Distancia': _summarizeField(data.map((w) => w.distance).toList()),
+            'Calorias quemadas': _summarizeField(
+              data.map((w) => w.caloriesBurned).toList(),
+            ),
+            'Elevación': _summarizeField(
+              data.map((w) => w.elevationGain).toList(),
+            ),
+            'Ritmo': _summarizeField(data.map((w) => w.avgPace).toList()),
+            // 'Pasos por minuto': _summarizeField(
+            //   data.map((w) => w.avgCadence).toList(),
+            // ),
+            // 'heartRate': _summarizeField(data.map((w) => w.heartRate).toList()),
+            // 'avgSteps': _summarizeField(data.map((w) => w.avgSteps).toList()),
+          },
+        );
+
+
+        case List<Cycling>():
+        return AerobicExerciseSummary(
+          recordCount: data.length,
+          startDate: start,
+          endDate: end,
+          metrics: {
+            'Velocidad': _summarizeField(
+              data.map((w) => w.speed?.toDouble()).toList(),
+            ),
+            'Duración': _summarizeField(
+              data.map((w) => w.duration?.inSeconds.toDouble()).toList(),
+            ),
+            'Distancia': _summarizeField(data.map((w) => w.distance).toList()),
+            'Calorias quemadas': _summarizeField(
+              data.map((w) => w.caloriesBurned).toList(),
+            ),
+            'Elevación': _summarizeField(
+              data.map((w) => w.elevationGain).toList(),
+            ),
+            'Ritmo': _summarizeField(data.map((w) => w.avgPace).toList()),
+            // 'Pasos por minuto': _summarizeField(
+            //   data.map((w) => w.avgCadence).toList(),
+            // ),
             // 'heartRate': _summarizeField(data.map((w) => w.heartRate).toList()),
             // 'avgSteps': _summarizeField(data.map((w) => w.avgSteps).toList()),
           },

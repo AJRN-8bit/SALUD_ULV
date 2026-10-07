@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/records/anthropometrics/anthro_records_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/screens/records/exercise/cycling/cycling_records_page.dart';
+import 'package:salud_ulv_app/src/features/presentation/screens/records/exercise/running/running_records_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/screens/records/exercise/walk/walk_records_page.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/themes/themes.dart';
 import 'package:salud_ulv_app/src/features/presentation/shared/widgets/buttons.dart';
@@ -40,19 +42,19 @@ class MainProgressPage extends StatelessWidget {
                 label: 'Caminatas',
                 onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) => WalkRecordsPage()));},
               ),
-              // GridActionTile(
-              //   icon: FontAwesomeIcons.personRunning,
-              //   label: 'Running',
-              //   onTap: () => CustomSnackBar.show(context, message: "Proximamente"),
-              // ),
-              // GridActionTile(
-              //   icon: FontAwesomeIcons.personBiking,
-              //   label: 'Bicicleta',
-              //   onTap: () => CustomSnackBar.show(context, message: "Proximamente"),
-              // ),
+              GridActionTile(
+                icon: FontAwesomeIcons.personRunning,
+                label: 'Running',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RunningRecordsPage())),
+              ),
+              GridActionTile(
+                icon: FontAwesomeIcons.personBiking,
+                label: 'Ciclismo',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CyclingRecordsPage())),
+              ),
               GridActionTile(
                 icon: FontAwesomeIcons.person,
-                label: 'Antropométricos',
+                label: 'Antropometría',
                 onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) => AnthroRecordsPage()));},
               ),
               // GridActionTile(

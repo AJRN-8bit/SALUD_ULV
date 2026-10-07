@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:salud_ulv_app/src/core/data/source/local/sqflite/cycling_repo.dart';
+import 'package:salud_ulv_app/src/core/data/source/local/sqflite/running_repo.dart';
 import 'package:salud_ulv_app/src/core/usecase/auth/check_auth_usecase.dart';
-import 'package:salud_ulv_app/src/core/usecase/exercises/walk/walk_usecase.dart';
+import 'package:salud_ulv_app/src/core/usecase/exercises/trackers/cycling_usecase.dart';
+import 'package:salud_ulv_app/src/core/usecase/exercises/trackers/running_usecase.dart';
+import 'package:salud_ulv_app/src/core/usecase/exercises/trackers/walk_usecase.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/accelerometer_sensor.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sensors/geolocator_sensor.dart';
 import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_repo.dart';
-import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
+// import 'package:salud_ulv_app/src/core/data/source/local/sqflite/walk_samples_repo.dart';
 import 'package:salud_ulv_app/src/features/presentation/bloc/exercise_tracking_bloc/exercise_tracking_bloc.dart';
 import 'package:salud_ulv_app/src/features/services/background_service.dart';
 import 'package:salud_ulv_app/src/core/data/source/token/current_user_service.dart';
@@ -37,32 +41,51 @@ void main() async {
   }
 
   runApp(
-    MultiBlocProvider(providers: [    
-      
-      BlocProvider(
-      create: (_) => CheckAuthBloc(
-        checkAuthUseCase: CheckAuthUsecase(
-          TokenStorage(),
-          TokenHandler(),
-          CurrentUserSession(),
-          UserLocalRepo(),
-        ),
-      )..add(CheckAuthEvent())),       
-      
-       BlocProvider(
-          create: (context) => ExerciseTrackingBloc(
-            usecase: WalkActivityUsecase(
-              WalkRepo(),
-              WalkSamplesRepo(),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => CheckAuthBloc(
+            checkAuthUseCase: CheckAuthUsecase(
+              TokenStorage(),
+              TokenHandler(),
               CurrentUserSession(),
-              AccelerometerSensor(),
-              GeolocatorSensor(),
-              LocationPermissionService(),
+              UserLocalRepo(),
             ),
+          )..add(CheckAuthEvent()),
+        ),
+
+        BlocProvider(
+          create: (_) => ExerciseTrackingBloc(
+            usecases: {
+              ExerciseType.walk: WalkActivityUsecase(
+                WalkRepo(),
+                WalkSamplesRepo(),
+                CurrentUserSession(),
+                AccelerometerSensor(),
+                GeolocatorSensor(),
+                LocationPermissionService(),
+              ),
+              ExerciseType.running: RunningActivityUsecase(
+                RunningRepo(),
+                RunningSamplesRepo(),
+                CurrentUserSession(),
+                AccelerometerSensor(),
+                GeolocatorSensor(),
+                LocationPermissionService(),
+              ),
+              ExerciseType.cycling: CyclingActivityUsecase(
+                CyclingRepo(),
+                CyclingSamplesRepo(),
+                CurrentUserSession(),
+                GeolocatorSensor(),
+                LocationPermissionService(),
+              ),
+            },
           ),
         ),
-        ], 
-        child: const MyApp()),
+      ],
+      child: const MyApp(),
+    ),
   );
 }
 
@@ -84,14 +107,14 @@ class MyApp extends StatelessWidget {
           return switch (state) {
             Authenticated() => const MainWrapper(),
             Unauthenticated() => const SplashPage(),
-            AuthInitial() => const SizedBox.shrink(), 
+            AuthInitial() => const SizedBox.shrink(),
             // TODO: Handle this case;
             AuthState() => throw UnimplementedError(),
           };
         },
 
         listener: (context, state) {
-          if(state is! AuthInitial) {
+          if (state is! AuthInitial) {
             FlutterNativeSplash.remove();
           }
         },
